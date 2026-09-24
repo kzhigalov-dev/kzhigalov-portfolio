@@ -1,20 +1,24 @@
 # Источники портфолио
 
-Проверено 11 сентября 2026 года.
+Повторно проверено 24 сентября 2026 года.
 
 - Имя, профессиональное направление, город, образование, курсы, навыки, статус поиска и почта: https://github.com/kzhigalov-dev/kzhigalov-dev/blob/main/README.md
 - Retail Demand Planner, описание и метрики: https://github.com/kzhigalov-dev/retail-demand-planner/blob/main/README.md
 - FraudLens, описание и метрики: https://github.com/kzhigalov-dev/fraudlens/blob/main/README.md
+- Job Ranker, подход, ограничения и NDCG@10 на двух временных окнах: https://github.com/kzhigalov-dev/job-ranker/blob/main/README.md
 - MarketAI: https://github.com/kzhigalov-dev/marketai/blob/main/README.md
 - Creatix: https://github.com/kzhigalov-dev/creatix/blob/main/README.md
 - Series Shorts Agent: https://github.com/kzhigalov-dev/series-shorts-agent/blob/main/README.md
 - Губахинский музей: https://github.com/kzhigalov-dev/gubakha-museum/blob/main/README.md
+- F2F Bank Tests, 25 сценариев и фактический результат 23 passed / 2 failed: https://github.com/kzhigalov-dev/f2f-bank-tests/blob/main/README.md
+
+Проверен также https://github.com/kzhigalov-dev/amfiton-eq. Это отдельный продуктовый проект, но его не включили в основные кейсы, чтобы портфолио оставалось сфокусированным на Data Science и ML Engineering; ссылка на полный список репозиториев есть на сайте.
 
 Скриншоты взяты из docs/assets/dashboard.png (Retail Demand Planner) и docs/assets/fraudlens-dashboard.png (FraudLens) соответствующих репозиториев. Остальные обложки — типографическое оформление названий, а не скриншоты приложений.
 
 Просмотрены относящиеся к профессиональному профилю доступные сессии. Неподтверждённые предположения из ранее сгенерированных анкет не использованы. Личная переписка и сведения, не относящиеся к профессиональному портфолио, не включены.
 
-Показатели ML — опубликованные автором результаты на тестовых данных, не независимо воспроизведённые результаты и не обещание производственного эффекта. Сокращение затрат Retail Demand Planner относится к симуляции.
+Показатели ML — опубликованные автором результаты на тестовых данных, не независимо воспроизведённые результаты и не обещание производственного эффекта. Сокращение затрат Retail Demand Planner относится к симуляции. Результаты Job Ranker относятся к отложенным дням публичного периода исторического набора CareerBuilder, а не к скрытому тесту соревнования; ограничение candidate recall указано в описании кейса.
 
 ## Дизайн и ресурсы
 
@@ -23,6 +27,6 @@
 Шрифт Manrope: https://github.com/google/fonts/tree/main/ofl/manrope — SIL Open Font License 1.1, копия лицензии в assets/Manrope-LICENSE.txt. Шрифт хранится локально.
 
 Доработка по Taste Skill: https://github.com/Leonxlnx/taste-skill
-Использованы design-taste-frontend и рекомендации redesign-existing-projects: аудит перед изменениями, асимметрия, читаемая типографика, реальные изображения и проверка состояний взаимодействия. Глобальная установка навыков не изменялась.
+Использованы design-taste-frontend и рекомендации redesign-existing-projects: аудит перед изменениями, асимметрия, читаемая типографика, реальные изображения и проверка состояний взаимодействия. Для следующей итерации также применены ui-ux-pro-max и обновлённый frontend-design.
 
 Генеративный узор: css-doodle v0.51.0, https://github.com/css-doodle/css-doodle, лицензия MIT в assets/css-doodle-LICENSE.txt. Библиотека включена локально. Дизайн узора и остальные элементы страницы созданы для этого портфолио.

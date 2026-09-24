@@ -699,3 +699,34 @@ dialog .dialog-note{font-size:12px;margin-top:25px}
 .fraud-feature .case-screen{box-shadow:0 22px 45px #070d2c66}
 @media(min-width:761px){.case-methods{gap:14px;margin-top:36px}.case-methods li{font-size:13px;padding-left:15px}.fraud-feature{padding:42px;margin:40px 0 0}.fraud-feature .case-metric>strong{font-size:clamp(58px,6vw,82px);letter-spacing:-5px}}
 @media(min-width:1101px){.fraud-feature{padding:52px 58px;column-gap:64px;row-gap:46px}.fraud-feature .case-top{justify-content:center}.fraud-feature .case-screen{align-self:center}}
+
+/* An actual evaluation result becomes the visual for the code-first ranking project. */
+.ranker-feature{display:grid;gap:28px;background:#e9edf8;border:1px solid #cfd8ea;border-radius:8px;padding:27px 20px 31px;margin:48px -20px 0}
+.ranker-copy .case-category{color:var(--blue)}
+.ranker-copy h3{font-size:42px;line-height:1.08;letter-spacing:-2.5px;margin:18px 0 17px}
+.ranker-copy>p{font-size:15px;line-height:1.7;color:#465568;max-width:490px;margin:0}
+.ranker-copy .case-methods{margin-top:26px}
+.ranker-open{background:none;border-bottom:2px solid var(--blue);padding:0 0 8px;margin-top:28px;color:var(--blue);font-size:13px;font-weight:800}
+.ranker-open span{margin-left:12px}
+.ranker-open:hover{color:#1b2097;border-color:#1b2097}
+.ranker-chart{margin:0;background:#f9fbff;border:1px solid #cbd4e6;border-radius:5px;padding:22px 17px}
+.ranker-chart figcaption{font-size:14px;font-weight:800;margin-bottom:23px}
+.ranker-chart-scale{display:flex;justify-content:space-between;margin-bottom:8px;color:#556476;font:10px monospace}
+.ranker-chart-row{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;margin-bottom:18px}
+.ranker-chart-row>span:first-child{font-size:12px;font-weight:700}
+.ranker-chart-row>strong{font-size:16px;font-variant-numeric:tabular-nums}
+.ranker-chart-track{grid-column:1/-1;grid-row:2;display:block;height:20px;background:repeating-linear-gradient(90deg,#d4dcef 0 1px,transparent 1px 25%);border:1px solid #cfdaea}
+.ranker-chart-track i{display:block;height:100%;background:var(--blue)}
+.ranker-chart-row:nth-of-type(3) .ranker-chart-track i{background:#8793a8}
+.ranker-chart>p{font-size:11px;line-height:1.65;color:#596677;margin:28px 0 0}
+.ranker-bottom{border-top:1px solid #b9c6dc;padding-top:22px;display:grid;grid-template-columns:auto 1fr;gap:9px 17px;align-items:center}
+.ranker-bottom>strong{font-size:62px;line-height:1;letter-spacing:-4px;color:var(--blue);font-variant-numeric:tabular-nums}
+.ranker-bottom>span{font-size:12px;font-weight:750;line-height:1.4}
+.ranker-bottom small{display:block;color:#5a687b;font-size:10px;font-weight:550;margin-top:4px}
+.ranker-bottom .source-link{grid-column:1/-1;justify-self:start;margin-top:10px}
+.engineering-note{display:grid;gap:16px;border-top:1px solid #aeb3b3;border-bottom:1px solid #aeb3b3;padding:25px 0;margin-top:70px}
+.engineering-note h3{font-size:27px;letter-spacing:-1px;margin:12px 0 8px}
+.engineering-note p{font-size:13px;line-height:1.7;color:var(--muted);max-width:800px;margin:0}
+.engineering-note>a{font-size:13px;font-weight:800;color:var(--blue);text-decoration:underline;text-underline-offset:5px;align-self:center}
+@media(min-width:761px){.ranker-feature{grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);gap:32px 50px;padding:40px;margin:62px 0 0}.ranker-copy h3{font-size:clamp(47px,5vw,67px)}.ranker-copy>p{font-size:17px}.ranker-chart{padding:30px 28px}.ranker-chart-row{grid-template-columns:125px minmax(0,1fr) 53px;margin-bottom:24px}.ranker-chart-row>span:first-child{font-size:13px}.ranker-chart-track{grid-column:2;grid-row:1;height:23px}.ranker-chart-scale{margin-left:125px;margin-right:53px}.ranker-bottom{grid-column:1/-1;grid-template-columns:auto 1fr auto;padding-top:25px}.ranker-bottom>strong{font-size:78px}.ranker-bottom>span{font-size:14px}.ranker-bottom small{font-size:11px}.ranker-bottom .source-link{grid-column:3;margin-top:0}.engineering-note{grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:31px 0;margin-top:95px}.engineering-note h3{font-size:32px}.engineering-note p{font-size:15px}}
+@media(min-width:1101px){.ranker-feature{gap:38px 72px;padding:52px 58px}.ranker-chart{padding:35px 33px}.ranker-chart figcaption{font-size:16px}.ranker-chart>p{font-size:12px}.ranker-bottom>strong{font-size:90px}}
