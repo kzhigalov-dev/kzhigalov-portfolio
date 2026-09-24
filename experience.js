@@ -28,10 +28,15 @@ function openProject(id) {
   caseButton?.click();
 }
 
+function selectStation(id, source) {
+  document.dispatchEvent(new CustomEvent('portfolio:station-select', { detail: { id, source } }));
+}
+
 document.querySelectorAll('[data-world-project]').forEach(button => {
   button.addEventListener('click', () => {
     document.querySelector('.experience-map').open = false;
-    openProject(button.dataset.worldProject);
+    if (renderer && !section.classList.contains('experience--fallback')) selectStation(button.dataset.worldProject, 'map');
+    else openProject(button.dataset.worldProject);
   });
 });
 
@@ -141,6 +146,31 @@ if (renderer) {
     return mesh;
   }
 
+  function silhouette(group, outline, depth, z, mat) {
+    // The locally bundled Three.js is intentionally small, so these few
+    // polygonal faces are built with BufferGeometry instead of ExtrudeGeometry.
+    const vertices = [];
+    const triangle = (a, b, c) => vertices.push(...a, ...b, ...c);
+    const face = (a, b, c) => { triangle(a, b, c); triangle(c, b, a); };
+    const point = (index, faceZ) => [outline[index][0], outline[index][1], faceZ];
+    for (let i = 1; i < outline.length - 1; i++) {
+      face(point(0, depth), point(i, depth), point(i + 1, depth));
+      face(point(0, 0), point(i + 1, 0), point(i, 0));
+    }
+    for (let i = 0; i < outline.length; i++) {
+      const next = (i + 1) % outline.length;
+      face(point(i, 0), point(next, 0), point(next, depth));
+      face(point(i, 0), point(next, depth), point(i, depth));
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.computeVertexNormals();
+    const mesh = new THREE.Mesh(geometry, mat);
+    mesh.position.z = z;
+    group.add(mesh);
+    return mesh;
+  }
+
   function makeLabel(name, color) {
     const canvas = document.createElement('canvas');
     canvas.width = 600;
@@ -163,7 +193,7 @@ if (renderer) {
     texture.colorSpace = THREE.SRGBColorSpace;
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
     sprite.scale.set(4.2, 0.9, 1);
-    sprite.position.y = 2.66;
+    sprite.position.y = 3.05;
     return sprite;
   }
 
@@ -172,33 +202,75 @@ if (renderer) {
     structure.position.y = 0.35;
     group.add(structure);
     if (info.kind === 'rank') {
-      [0.55, 0.85, 1.16, 1.5].forEach((height, i) => box(structure, 0.3, height, 0.44, (i - 1.5) * 0.4, height / 2, 0, i === 3 ? accent : cream));
+      box(structure, 2.16, 0.15, 0.99, 0, 0.11, 0.04, graphite);
+      box(structure, 2.15, 1.62, 0.12, 0, 1.09, -0.39, graphite);
+      box(structure, 1.9, 1.38, 0.04, 0, 1.11, -0.3, dark);
+      [0.58, 0.9, 1.27, 1.68].forEach((height, i) => {
+        const x = (i - 1.5) * 0.46;
+        box(structure, 0.32, height, 0.45, x, height / 2 + 0.18, 0.27, i === 3 ? accent : cream);
+        box(structure, 0.36, 0.08, 0.49, x, height + 0.22, 0.27, i === 3 ? cream : accent);
+      });
+      box(structure, 1.75, 0.06, 0.06, 0, 0.45, -0.21, accent);
     } else if (info.kind === 'retail') {
-      box(structure, 1.2, 0.18, 0.9, 0, 0.12, 0, graphite);
-      [[-0.37, 0.49], [0.04, 0.71], [0.43, 1.02]].forEach(([x, height]) => box(structure, 0.34, height, 0.45, x, height / 2 + 0.22, 0, accent));
+      box(structure, 2.25, 0.2, 1.05, 0, 0.13, 0.04, graphite);
+      for (const x of [-0.91, 0.91]) box(structure, 0.11, 1.56, 0.13, x, 1.0, -0.31, cream);
+      box(structure, 2.0, 0.12, 0.18, 0, 1.79, -0.31, cream);
+      [[-0.58, 0.62], [0, 1.1], [0.58, 1.48]].forEach(([x, height], i) => {
+        box(structure, 0.46, height, 0.5, x, height / 2 + 0.26, 0.2, i === 2 ? cream : accent);
+        box(structure, 0.49, 0.1, 0.54, x, height + 0.3, 0.2, i === 2 ? accent : cream);
+      });
+      box(structure, 1.88, 0.075, 0.2, 0, 0.62, -0.26, accent);
     } else if (info.kind === 'fraud') {
-      const shield = new THREE.Mesh(new THREE.OctahedronGeometry(0.76), accent);
-      shield.position.y = 0.94;
-      shield.rotation.z = Math.PI / 4;
-      structure.add(shield);
-      box(structure, 0.45, 0.12, 0.13, 0, 0.95, 0.7, cream);
+      box(structure, 1.97, 0.16, 0.95, 0, 0.14, 0, graphite);
+      silhouette(structure, [[-1, 1.9], [1, 1.9], [0.84, 0.64], [0, 0.14], [-0.84, 0.64]], 0.17, -0.26, graphite);
+      silhouette(structure, [[-0.85, 1.77], [0.85, 1.77], [0.7, 0.73], [0, 0.31], [-0.7, 0.73]], 0.08, -0.04, cream);
+      const iris = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.075, 8, 32), accent);
+      iris.position.set(0, 1.16, 0.08);
+      structure.add(iris);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 8), dark);
+      pupil.position.set(0, 1.16, 0.12);
+      structure.add(pupil);
+      box(structure, 0.31, 0.06, 0.08, 0, 0.51, 0.07, cream);
     } else if (info.kind === 'market') {
-      [[-0.35, 0.52], [0.39, 0.74], [0.05, 1.26]].forEach(([x, y], i) => box(structure, 0.64, 0.47, 0.58, x, y, i === 2 ? -0.3 : 0.25, i === 2 ? accent : cream));
+      box(structure, 2.25, 0.19, 1.1, 0, 0.15, 0.05, graphite);
+      box(structure, 2.08, 1.54, 0.11, 0, 1.11, -0.44, graphite);
+      box(structure, 1.83, 1.28, 0.04, 0, 1.11, -0.36, dark);
+      [[-0.58, 0.52], [0, 0.83], [0.58, 1.16]].forEach(([x, height], i) => {
+        box(structure, 0.44, height, 0.48, x, height / 2 + 0.26, 0.24, i === 2 ? accent : cream);
+        box(structure, 0.49, 0.1, 0.53, x, height + 0.3, 0.24, i === 2 ? cream : accent);
+      });
+      const trend = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([[-0.7, 0.98], [-0.1, 1.24], [0.45, 1.15], [0.78, 1.62]].map(([x, y]) => new THREE.Vector3(x, y, -0.29))),
+        new THREE.LineBasicMaterial({ color: info.color })
+      );
+      structure.add(trend);
     } else if (info.kind === 'video') {
-      box(structure, 1.45, 1.03, 0.15, 0, 0.85, 0, graphite);
-      box(structure, 1.2, 0.77, 0.08, 0, 0.85, 0.11, accent);
-      const play = new THREE.Mesh(new THREE.ConeGeometry(0.29, 0.5, 3), cream);
-      play.rotation.z = -Math.PI / 2;
-      play.position.set(0.05, 0.85, 0.21);
-      structure.add(play);
+      box(structure, 2.19, 1.55, 0.2, 0, 1.13, 0, graphite);
+      box(structure, 1.93, 1.15, 0.05, 0, 1.27, 0.13, accent);
+      silhouette(structure, [[-0.22, 0.83], [0.47, 1.27], [-0.22, 1.69]], 0.035, 0.2, cream);
+      box(structure, 1.92, 0.06, 0.06, 0, 0.52, 0.16, cream);
+      box(structure, 0.54, 0.08, 0.08, -0.68, 0.52, 0.21, dark);
+      box(structure, 0.72, 0.14, 0.74, 0, 0.21, 0.18, graphite);
     } else if (info.kind === 'shorts') {
-      box(structure, 0.88, 1.55, 0.17, 0, 0.85, 0, graphite);
-      box(structure, 0.69, 1.28, 0.04, 0, 0.85, 0.11, accent);
-      box(structure, 0.42, 0.1, 0.04, 0, 0.42, 0.15, cream);
+      box(structure, 0.8, 1.41, 0.13, -0.63, 0.86, -0.2, graphite);
+      box(structure, 0.6, 1.12, 0.05, -0.63, 0.86, -0.12, accent);
+      box(structure, 1.12, 1.99, 0.2, 0.28, 1.11, 0.17, graphite);
+      box(structure, 0.9, 1.66, 0.05, 0.28, 1.12, 0.29, accent);
+      box(structure, 0.72, 0.41, 0.06, 0.28, 1.55, 0.35, cream);
+      box(structure, 0.72, 0.32, 0.06, 0.28, 0.94, 0.35, cream);
+      box(structure, 0.52, 0.075, 0.07, 0.2, 0.49, 0.35, dark);
+      box(structure, 0.12, 0.12, 0.07, 0.92, 0.52, 0.35, cream);
     } else if (info.kind === 'museum') {
-      [-0.45, 0, 0.45].forEach(x => box(structure, 0.22, 1.15, 0.35, x, 0.83, 0, cream));
-      box(structure, 1.55, 0.17, 0.54, 0, 1.51, 0, accent);
-      box(structure, 1.55, 0.17, 0.54, 0, 0.2, 0, graphite);
+      box(structure, 2.28, 0.18, 1.17, 0, 0.14, 0.07, graphite);
+      box(structure, 2.05, 0.16, 0.95, 0, 0.31, 0.07, cream);
+      [-0.73, -0.24, 0.24, 0.73].forEach(x => {
+        box(structure, 0.16, 1.16, 0.22, x, 1.01, 0.24, cream);
+        box(structure, 0.25, 0.12, 0.3, x, 1.61, 0.24, accent);
+      });
+      box(structure, 2.15, 0.19, 0.94, 0, 1.76, 0.06, accent);
+      silhouette(structure, [[-1.14, 1.85], [0, 2.37], [1.14, 1.85]], 0.29, -0.27, cream);
+      silhouette(structure, [[-0.61, 1.96], [0, 2.24], [0.61, 1.96]], 0.04, 0.05, graphite);
+      box(structure, 0.55, 0.56, 0.05, 0, 0.73, 0.38, dark);
     }
     return structure;
   }
@@ -250,12 +322,12 @@ if (renderer) {
       new THREE.LineBasicMaterial({ color: info.color, transparent: true, opacity: 0.34, depthWrite: false })
     );
     scene.add(path);
-    const pulse = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), new THREE.MeshBasicMaterial({ color: info.color }));
+    const pulse = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), new THREE.MeshBasicMaterial({ color: info.color, transparent: true, opacity: 1, depthWrite: false }));
     scene.add(pulse);
     const pulseGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, color: info.color, transparent: true, opacity: 0.62, depthWrite: false }));
     pulseGlow.scale.set(0.62, 0.62, 1);
     scene.add(pulseGlow);
-    points.push({ info, group, sculpture, ring, halo, route, pulse, pulseGlow, index });
+    points.push({ info, group, sculpture, ring, halo, path, route, pulse, pulseGlow, label, index });
   });
 
   // The rover is made from simple geometry; it is not a copied vehicle model.
@@ -307,16 +379,30 @@ if (renderer) {
   let speed = 0;
   let nearId = null;
   let hoveredId = null;
+  let selectedId = null;
+  let focusStartedAt = 0;
   let last = performance.now();
   let frame = 0;
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
 
+  window.portfolioWorld = {
+    focus(id) {
+      if (!stations.some(station => station.id === id)) return;
+      selectedId = id;
+      active = true;
+      focusStartedAt = performance.now();
+      speed = 0;
+      Object.keys(state).forEach(key => { state[key] = false; });
+    },
+    clearFocus() { selectedId = null; }
+  };
+
   function activate() {
     active = true;
     section.classList.add('is-active');
     viewport.focus({ preventScroll: true });
-    setStatus('Езжайте к светящимся станциям. Enter откроет ближайший кейс. Esc вернёт подсказку.');
+    setStatus('Езжайте к светящимся станциям. Enter покажет досье проекта. Esc вернёт подсказку.');
   }
   startButton.addEventListener('click', activate);
   viewport.addEventListener('focus', () => { active = true; section.classList.add('is-active'); });
@@ -332,13 +418,14 @@ if (renderer) {
   }
   function interact() {
     const { station, distance } = nearestStation();
-    if (distance < 3.3) openProject(station.id);
+    if (distance < 3.3) selectStation(station.id, 'rover');
     else setStatus('Подъезжайте ближе к станции или выберите проект на карте.');
   }
 
   const controls = { KeyW: 'forward', ArrowUp: 'forward', KeyS: 'backward', ArrowDown: 'backward', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right', ShiftLeft: 'boost', ShiftRight: 'boost' };
   window.addEventListener('keydown', event => {
     if (!active || !visible || document.querySelector('#project-dialog')?.open) return;
+    if (selectedId) return;
     if (event.code === 'Escape') {
       active = false;
       section.classList.remove('is-active');
@@ -376,7 +463,7 @@ if (renderer) {
   renderer.domElement.addEventListener('pointerup', event => {
     if (!pointerDown || Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y) > 12) return;
     const id = pick(event);
-    if (id) openProject(id);
+    if (id) selectStation(id, 'canvas');
     else activate();
     pointerDown = null;
   });
@@ -438,37 +525,53 @@ if (renderer) {
     const nextNear = nearest.distance < 3.3 ? nearest.station.id : null;
     if (nextNear !== nearId) {
       nearId = nextNear;
-      if (nearId) setStatus(`Рядом: ${nearest.station.name}. Нажмите Enter или «Открыть».`);
-      else if (active) setStatus('Езжайте к светящимся станциям. Enter откроет ближайший кейс.');
+      if (nearId) setStatus(`Рядом: ${nearest.station.name}. Нажмите Enter или «Выбрать».`);
+      else if (active) setStatus('Езжайте к светящимся станциям. Enter покажет досье проекта.');
     }
-    points.forEach(({ info, sculpture, ring, halo, route, pulse, pulseGlow, index }) => {
-      if (!motion.matches) {
-        sculpture.position.y = Math.sin(t * 1.5 + index) * 0.07;
-        sculpture.rotation.y += dt * 0.15;
-      }
-      const pathTime = motion.matches ? 0.35 : (t * 0.13 + index / points.length) % 1;
+    points.forEach(({ info, sculpture, ring, halo, path, route, pulse, pulseGlow, label, index }) => {
+      const selected = info.id === selectedId;
+      const signalAge = (now - focusStartedAt) / 1000;
+      const pathTime = selected ? (motion.matches ? 1 : Math.min(signalAge / 0.9, 1)) : motion.matches ? 0.35 : (t * 0.13 + index / points.length) % 1;
       const position = route(pathTime);
       pulse.position.set(position.x, 0.09, position.z);
       pulseGlow.position.set(position.x, 0.1, position.z);
-      const focus = info.id === hoveredId ? 0.62 : info.id === nearId ? 0.46 : 0;
+      const focus = selected ? 0.88 : selectedId ? 0 : info.id === hoveredId ? 0.62 : info.id === nearId ? 0.46 : 0;
       const ease = motion.matches ? 1 : 1 - Math.exp(-8 * dt);
-      ring.material.opacity = THREE.MathUtils.lerp(ring.material.opacity, focus ? 1 : 0.66, ease);
+      // The exhibits stay legible at rest and acknowledge an intentional hover
+      // or rover arrival by lifting slightly, rather than spinning continuously.
+      const lift = motion.matches || selected ? 0 : Math.sin(t * 1.15 + index) * 0.018;
+      sculpture.position.y = THREE.MathUtils.lerp(sculpture.position.y, 0.35 + lift + (selected ? 0.26 : focus ? 0.16 : 0), ease);
+      sculpture.rotation.y = THREE.MathUtils.lerp(sculpture.rotation.y, focus ? 0.08 : 0, ease);
+      ring.material.opacity = THREE.MathUtils.lerp(ring.material.opacity, selected ? 1 : selectedId ? 0.2 : focus ? 1 : 0.66, ease);
       halo.material.opacity = motion.matches ? focus : THREE.MathUtils.lerp(halo.material.opacity, focus, ease);
       const haloScale = focus && !motion.matches ? 1 + Math.sin(t * 3 + index) * 0.045 : 1;
       halo.scale.setScalar(haloScale);
+      path.material.opacity = THREE.MathUtils.lerp(path.material.opacity, selected ? 0.75 : selectedId ? 0.08 : 0.34, ease);
+      label.material.opacity = THREE.MathUtils.lerp(label.material.opacity, selected ? 1 : selectedId ? 0.23 : 1, ease);
+      const signalOpacity = selected ? (motion.matches ? 0.48 : Math.max(0, Math.min(1, (1.3 - signalAge) / 0.4))) : selectedId ? 0.12 : 1;
+      pulse.material.opacity = signalOpacity;
+      pulseGlow.material.opacity = selected ? signalOpacity * 0.86 : selectedId ? 0.08 : 0.62;
+      pulseGlow.scale.setScalar(selected ? 1.05 : 0.62);
     });
     const mobile = viewport.clientWidth < 600;
     const compact = viewport.clientWidth < 900;
     const middle = viewport.clientWidth < 1101;
     const cameraOffsetX = compact || active ? 0 : middle ? -3.5 : -6;
-    const desiredPosition = new THREE.Vector3(
-      rover.position.x * (compact ? 0.55 : 0.45) + cameraOffsetX,
-      mobile ? (active ? 19 : 27) : compact ? (active ? 18 : 24) : middle ? (active ? 17 : 20) : (active ? 15 : 16),
-      (mobile ? (active ? 23 : 31) : compact ? (active ? 26 : 29) : middle ? (active ? 24 : 25) : (active ? 21 : 22)) + rover.position.z * 0.35
-    );
-    const cameraEase = motion.matches ? 1 : 1 - Math.exp(-2.6 * dt);
+    const selectedStation = selectedId ? stations.find(station => station.id === selectedId) : null;
+    const focusOffsetX = mobile ? 0 : compact ? -2.4 : middle ? -3.3 : -3.6;
+    const desiredPosition = selectedStation
+      ? new THREE.Vector3(selectedStation.x + focusOffsetX, mobile ? 9.5 : compact ? 10.5 : 8.5, selectedStation.z + (mobile ? 13.5 : 13))
+      : new THREE.Vector3(
+        rover.position.x * (compact ? 0.55 : 0.45) + cameraOffsetX,
+        mobile ? (active ? 19 : 27) : compact ? (active ? 18 : 24) : middle ? (active ? 17 : 20) : (active ? 15 : 16),
+        (mobile ? (active ? 23 : 31) : compact ? (active ? 26 : 29) : middle ? (active ? 24 : 25) : (active ? 21 : 22)) + rover.position.z * 0.35
+      );
+    const desiredTarget = selectedStation
+      ? new THREE.Vector3(selectedStation.x + focusOffsetX, mobile ? -0.25 : 0.9, selectedStation.z)
+      : new THREE.Vector3(rover.position.x * 0.25 + cameraOffsetX, mobile && active ? -1.8 : compact ? -0.8 : 0, rover.position.z * 0.25);
+    const cameraEase = motion.matches ? 1 : 1 - Math.exp(-(selectedStation ? 4 : 2.6) * dt);
     camera.position.lerp(desiredPosition, cameraEase);
-    cameraTarget.lerp(new THREE.Vector3(rover.position.x * 0.25 + cameraOffsetX, mobile && active ? -1.8 : compact ? -0.8 : 0, rover.position.z * 0.25), cameraEase);
+    cameraTarget.lerp(desiredTarget, cameraEase);
     camera.lookAt(cameraTarget);
     renderer.render(scene, camera);
     frame = requestAnimationFrame(tick);

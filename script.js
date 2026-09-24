@@ -115,6 +115,77 @@ const projects = {
   }
 };
 
+// The project dossier is real HTML so the 3D world has a readable, keyboard-accessible payoff.
+const worldFacts = {
+  retail: { task: 'Понять, сколько товара заказать после прогноза спроса.', approach: 'Квантильный LightGBM и проверка на будущем периоде.', color: '#9be7c3' },
+  fraud: { task: 'Выбрать заявки для ручной проверки по уровню риска.', approach: 'Калибровка вероятностей и порог с учётом цены ошибок.', color: '#ff9877' },
+  ranker: { task: 'Показать подходящие вакансии конкретному соискателю первыми.', approach: 'Генерация кандидатов и LambdaRank по 19 признакам.', color: '#9eb8ff' },
+  market: { task: 'Собрать карточку товара из короткого описания.', approach: 'Генерация контента для Wildberries, Ozon и Amazon.', color: '#ffc6a4' },
+  creatix: { task: 'Превратить содержимое веб-страницы в видеокреатив.', approach: 'Парсинг, сценарий, изображения, озвучка и рендер.', color: '#a7e7d8' },
+  shorts: { task: 'Автоматизировать короткие пересказы на двух языках.', approach: 'Анализ кадров, сценарий, озвучка и монтаж.', color: '#b8b9ff' },
+  museum: { task: 'Представить историю и экспозиции музея в интернете.', approach: 'Адаптивный сайт с информацией для посетителей.', color: '#e6d8b8' }
+};
+const worldOrder = [...document.querySelectorAll('.experience-map-list [data-world-project]')].map(button => button.dataset.worldProject);
+const worldSection = document.querySelector('#experience');
+const worldExhibit = document.querySelector('#world-exhibit');
+const worldExhibitTitle = document.querySelector('#world-exhibit-title');
+let selectedWorldProject = null;
+let worldReturnFocus = null;
+
+function showWorldExhibit(id, source = 'canvas') {
+  const project = projects[id];
+  const facts = worldFacts[id];
+  if (!project || !facts) return;
+  const wasHidden = worldExhibit.hidden;
+  if (wasHidden) worldReturnFocus = source === 'map' ? document.querySelector('.experience-map summary') : document.querySelector('#experience-viewport');
+  selectedWorldProject = id;
+  document.querySelector('#world-exhibit-index').textContent = `${String(worldOrder.indexOf(id) + 1).padStart(2, '0')} / 07`;
+  worldExhibitTitle.textContent = project.title;
+  document.querySelector('#world-exhibit-task').textContent = facts.task;
+  document.querySelector('#world-exhibit-approach').textContent = facts.approach;
+  document.querySelector('#world-exhibit-metric').textContent = project.metric;
+  document.querySelector('#world-exhibit-note').textContent = project.note;
+  worldExhibit.style.setProperty('--world-accent', facts.color);
+  worldExhibit.hidden = false;
+  worldExhibit.scrollTop = 0;
+  worldSection.classList.add('is-active', 'is-showcase');
+  window.portfolioWorld?.focus(id);
+  if (wasHidden || source !== 'next-button') requestAnimationFrame(() => worldExhibit.focus({ preventScroll: true }));
+}
+
+function closeWorldExhibit() {
+  if (worldExhibit.hidden) return;
+  worldExhibit.hidden = true;
+  worldSection.classList.remove('is-showcase');
+  selectedWorldProject = null;
+  window.portfolioWorld?.clearFocus();
+  worldReturnFocus?.focus({ preventScroll: true });
+}
+
+document.addEventListener('portfolio:station-select', event => showWorldExhibit(event.detail.id, event.detail.source));
+document.querySelector('#world-exhibit-close').addEventListener('click', closeWorldExhibit);
+document.querySelector('#world-exhibit-next').addEventListener('click', () => {
+  const index = worldOrder.indexOf(selectedWorldProject);
+  showWorldExhibit(worldOrder[(index + 1) % worldOrder.length], 'next-button');
+});
+document.querySelector('#world-exhibit-open').addEventListener('click', () => {
+  document.querySelector(`#work [data-project="${selectedWorldProject}"]`)?.click();
+});
+document.addEventListener('keydown', event => {
+  if (worldExhibit.hidden || document.querySelector('#project-dialog')?.open) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeWorldExhibit();
+  } else if ((event.key === 'ArrowRight' || event.key === 'ArrowLeft') && worldExhibit.contains(document.activeElement)) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const step = event.key === 'ArrowRight' ? 1 : -1;
+    const index = worldOrder.indexOf(selectedWorldProject);
+    showWorldExhibit(worldOrder[(index + step + worldOrder.length) % worldOrder.length], 'keyboard');
+  }
+}, true);
+
 const menuButton = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('#navigation');
 function closeMenu() {
