@@ -24,6 +24,6 @@
 
 Шрифт Manrope: https://github.com/google/fonts/tree/main/ofl/manrope — SIL Open Font License 1.1, копия лицензии в assets/Manrope-LICENSE.txt. Шрифт хранится локально.
 
-Дизайн-подход: https://github.com/Leonxlnx/taste-skill. При доработке использовались рекомендации по асимметрии, читаемой типографике, реальным изображениям и проверке состояний взаимодействия.
+Дизайн-подход: https://github.com/Leonxlnx/taste-skill, https://github.com/nextlevelbuilder/ui-ux-pro-max-skill и https://github.com/anthropics/claude-code/blob/main/plugins/frontend-design/skills/frontend-design/SKILL.md. При доработке использовались рекомендации по выразительной композиции, читаемой типографике, контрасту, адаптивной сетке и состояниям взаимодействия. Готовые компоненты и стили из этих источников не копировались.
 
 3D-библиотека: Three.js v0.186.1, https://github.com/mrdoob/three.js, лицензия MIT в assets/three-LICENSE.txt. Нужные части библиотеки включены как локальный файл assets/three.js; сайт не требует npm или сборки.
