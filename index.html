@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f3ed">
+<meta name="description" content="Кирилл Жигалов — Junior Data Scientist / ML Engineer. Прогнозирование спроса, антифрод и AI-продукты. Санкт-Петербург / удалённо.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><title>Кирилл Жигалов — Data & ML Engineer</title>
+<link rel="stylesheet" href="style.css"><script src="assets/css-doodle.min.js" defer></script><script src="script.js" defer></script>
+</head>
+<body id="top">
+<a class="skip-link" href="#main">К содержимому</a>
+<header class="header wrap"><a class="logo" href="#top"><span class="monogram">k<span>z</span><i>.</i></span><span class="logo-name">Кирилл Жигалов<small>DATA SCIENCE & ML ENGINEERING</small></span></a><button class="menu-toggle" aria-expanded="false" aria-controls="navigation" aria-label="Открыть меню">Меню <span>☰</span></button><nav id="navigation" aria-label="Основная навигация"><a href="#work">Проекты</a><a href="#about">Обо мне</a><a href="https://github.com/kzhigalov-dev" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav><a class="header-cta" href="#contact">На связи <span class="status-dot"></span></a></header>
+<main id="main">
+<section class="hero wrap">
+<div class="hero-art" aria-hidden="true"><css-doodle id="hero-doodle">
+  @grid: 13x13 / 100%;
+  border: 1px solid rgba(255,255,255,.34);
+  transform: rotate(@p(0deg, 45deg, -45deg));
+  opacity: @r(.12,.45);
+  @even { background: rgba(255,255,255,.12); }
+</css-doodle><div class="art-orbit"></div><canvas id="data-field"></canvas><span class="art-wordmark">KZ<span>∕</span>LAB</span><span class="art-index">ДАННЫЕ → МОДЕЛЬ → РЕШЕНИЕ</span></div>
+<div class="field-controls" role="group" aria-label="Вид иллюстрации данных"><span>Графика данных</span><button type="button" data-field-mode="points" aria-pressed="true">Точки</button><button type="button" data-field-mode="mesh" aria-pressed="false">Сетка</button><button type="button" id="field-pause" aria-pressed="false">Пауза</button></div><div class="hero-copy"><div class="eyebrow">КИРИЛЛ ЖИГАЛОВ · DATA SCIENCE / ML</div><h1>Данные<br>в деле<span class="hero-period">.</span></h1><p class="hero-intro">Проектирую ML-сервисы от идеи до интерфейса. Проверяю модели на реальных задачах и показываю, как они помогают принимать решения.</p><div class="hero-actions"><a href="#work" class="button primary">Смотреть проекты <span>↗</span></a><a href="#about" class="quiet-link">Кто я <span>↓</span></a></div></div>
+
+</section>
+<section id="work" class="work wrap section">
+<div class="section-heading"><div><h2>Избранные проекты<span class="muted">.</span></h2></div><p>От прогноза спроса до AI-сервисов.<br>Реальные проекты. Открытый код.</p></div>
+<article class="featured project">
+<div class="case-top"><div><span class="case-category">Прогнозирование спроса</span><h3>Retail Demand Planner</h3><p>От прогноза спроса к решению о закупке.</p></div><button class="round-link" data-project="retail" aria-label="Открыть кейс Retail Demand Planner">↗</button></div>
+<button class="case-screen retail-screen" data-project="retail" aria-label="Подробнее о Retail Demand Planner"><img src="assets/retail.png" width="1280" height="720" alt="Реальный интерфейс Retail Demand Planner с прогнозом и решением по запасам" loading="lazy"></button>
+<div class="case-bottom"><div class="case-metric"><strong>−4,7<span>%</span></strong><span>MAE к сезонному baseline<small>Финальный 28-дневный holdout</small></span></div><div class="case-tech"><span>Python</span><span>LightGBM</span><span>FastAPI</span><span>Next.js</span></div><a class="source-link" href="https://github.com/kzhigalov-dev/retail-demand-planner" target="_blank" rel="noopener noreferrer">Исходный код ↗</a></div>
+</article>
+<article class="featured project fraud-feature">
+<div class="case-top"><div><span class="case-category">Антифрод и объяснимый ML</span><h3>FraudLens</h3><p>Оценка риска, которую можно объяснить.</p></div><button class="round-link" data-project="fraud" aria-label="Открыть кейс FraudLens">↗</button></div>
+<button class="case-screen fraud-screen" data-project="fraud" aria-label="Подробнее о FraudLens"><img src="assets/fraudlens.png" width="1280" height="720" alt="Реальный аналитический интерфейс FraudLens: риск заявок, калибровка и мониторинг" loading="lazy"></button>
+<div class="case-bottom"><div class="case-metric"><strong>53,7<span>%</span></strong><span>Recall при 5% review budget<small>Финальная тестовая выборка BAF</small></span></div><div class="case-tech"><span>LightGBM</span><span>Calibration</span><span>PSI</span><span>Docker</span></div><a class="source-link" href="https://github.com/kzhigalov-dev/fraudlens" target="_blank" rel="noopener noreferrer">Исходный код ↗</a></div>
+</article>
+<div class="more-heading"><h3>AI-продукты и веб-разработка</h3></div>
+<div class="project-grid">
+<button class="small-project project" data-project="market"><span class="small-art market-art" aria-hidden="true"><span class="cover-title">MarketAI</span><span class="cover-sentence">Одно описание.<br>Три маркетплейса.</span><span class="cover-footer">Wildberries / Ozon / Amazon</span></span><span class="small-info"><span><strong>MarketAI</strong><small>Карточки товаров с помощью Claude</small></span><span class="card-arrow">↗</span></span><span class="small-tags">Next.js / Claude SDK / Supabase</span></button>
+<button class="small-project project" data-project="creatix"><span class="small-art creatix-art" aria-hidden="true"><span class="cover-title">creatix</span><span class="cover-flow"><span>URL</span><span>→</span><span>Видео</span></span><span class="cover-footer">Сценарий · Изображения · Озвучка · Рендер</span></span><span class="small-info"><span><strong>Creatix</strong><small>От ссылки до видеокреатива</small></span><span class="card-arrow">↗</span></span><span class="small-tags">OpenAI / ElevenLabs / Firecrawl</span></button>
+<button class="small-project project" data-project="shorts"><span class="small-art shorts-art" aria-hidden="true"><span class="cover-title">Series / Shorts</span><span class="cover-sentence">Одна история.<br><span class="language-word">Два языка.</span></span><span class="cover-footer">Метаданные → Анализ кадров → Сценарий → Видео</span></span><span class="small-info"><span><strong>Series Shorts Agent</strong><small>Мультимодальный видеопайплайн</small></span><span class="card-arrow">↗</span></span><span class="small-tags">Gemini Vision / TypeScript / Remotion</span></button>
+<button class="small-project project" data-project="museum"><span class="small-art museum-art" aria-hidden="true"><span class="museum-type">Г<span>у</span>баха<span class="museum-dot">.</span></span><span class="museum-rule"></span><span class="art-brand museum-bottom">Историко-краеведческий музей<span>↗</span></span></span><span class="small-info"><span><strong>Губахинский музей</strong><small>Цифровое пространство локальной истории</small></span><span class="card-arrow">↗</span></span><span class="small-tags">Next.js / TypeScript / Tailwind CSS</span></button>
+</div><a class="all-repos quiet-link" href="https://github.com/kzhigalov-dev?tab=repositories" target="_blank" rel="noopener noreferrer">Больше кода на GitHub <span>↗</span></a>
+</section>
+<section id="about" class="about section"><div class="wrap"><div class="about-grid"><div class="about-title"><h2>Разобраться.<br>Проверить.<br><span class="muted">Довести до продукта.</span></h2><div class="identity"><span class="identity-avatar">КЖ</span><span>Кирилл Жигалов<small>Санкт-Петербург / Remote</small></span><span class="status-dot"></span></div></div><div class="about-copy"><p class="lead">Мне интересно понять данные<br>и сделать результат полезным.</p><p>Готовлю данные, обучаю модели и проверяю их на временных выборках. Затем собираю API и интерфейс.</p><p>Связываю качество модели с задачей: сколько товара заказать, какую заявку проверить и как объяснить решение.</p><div class="education"><div><span>ОБРАЗОВАНИЕ</span><strong>СПбГУПТД</strong><p>Прикладная информатика<br>Бакалавриат · ожидаемый выпуск в 2027</p></div><div><span>ДОПОЛНИТЕЛЬНО</span><strong>Anthropic Academy</strong><p>Claude 101<br>AI Fluency: Framework & Foundations</p></div></div></div></div>
+<div class="toolbox"><span class="toolbox-label">МОЙ ИНСТРУМЕНТАРИЙ</span><div><span>Python</span><span>pandas / NumPy</span><span>scikit-learn</span><span>LightGBM</span><span>FastAPI</span><span>Docker</span><span>PostgreSQL</span><span>Next.js</span><span>TypeScript</span><span>pytest / CI</span></div></div></div></section>
+<section id="contact" class="contact section wrap"><p class="eyebrow"><span class="status-dot"></span> ОТКРЫТ К СТАЖИРОВКАМ И JUNIOR-ПОЗИЦИЯМ</p><h2>Давайте работать<br><span>над сложным.</span></h2><p>Ищу команду, где смогу расти в Data Science и ML Engineering.<br>Буду рад познакомиться и обсудить ваши задачи.</p><div class="contact-actions"><a href="mailto:jigaloffkir@gmail.com" class="button primary">Давайте познакомимся <span>↗</span></a><button class="copy-email" data-email="jigaloffkir@gmail.com">jigaloffkir@gmail.com <span>⧉</span></button></div><p class="copy-status" role="status" aria-live="polite"></p></section>
+</main>
+<footer class="footer wrap"><a class="monogram" href="#top" aria-label="kz. На главную">k<span>z</span><i>.</i></a><span>© <span id="year">2026</span> Кирилл Жигалов</span><a href="https://github.com/kzhigalov-dev" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="#top">Наверх ↑</a></footer>
+<dialog id="project-dialog" aria-labelledby="dialog-title"><button class="dialog-close" aria-label="Закрыть проект">×</button><p class="eyebrow">ПРОЕКТ / KZHIGALOV-DEV</p><h2 id="dialog-title"></h2><p id="dialog-description" class="dialog-lead"></p><img id="dialog-image" class="dialog-image" alt="" hidden><h3>Задача и реализация</h3><p id="dialog-details"></p><div id="dialog-tags" class="skills"></div><a id="dialog-repo" class="button primary" target="_blank" rel="noopener noreferrer">Исходный код на GitHub ↗</a><p class="dialog-note">Описание и результаты взяты из README проекта. Метрики ML относятся к указанной тестовой выборке.</p></dialog>
+</body></html>

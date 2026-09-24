@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "project": {
+    "name": "2026-09-11-html-css-js",
+    "productType": "Personal ML engineering portfolio",
+    "stack": [
+      "HTML",
+      "CSS",
+      "JavaScript"
+    ]
+  },
+  "sources": {
+    "tokens": [],
+    "components": [],
+    "assets": [
+      "assets"
+    ],
+    "instructions": []
+  },
+  "design": {
+    "colorMode": "light",
+    "colors": {
+      "background": "#f5f3ed",
+      "surface": "#f5f3ed",
+      "text": "#1c2630",
+      "muted": "#4a5966",
+      "accent": "#373ce8",
+      "coral": "#f6774f"
+    },
+    "typography": {
+      "body": "Manrope",
+      "display": "Manrope 800",
+      "utility": "monospace"
+    },
+    "spacing": {},
+    "radius": {},
+    "shadows": {},
+    "motion": {},
+    "density": "spacious"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [],
+    "avoid": []
+  },
+  "decisions": [
+    "Creative science poster: light editorial page, cobalt generative hero, coral accent, and colored project covers.",
+    "Canvas surface and locally bundled MIT-licensed css-doodle v0.51.0; full-size screenshots for ML case studies.",
+    "No external runtime requests. Reduced motion and keyboard navigation supported."
+  ],
+  "evidence": [],
+  "generatedAt": "2026-09-11T18:48:27.532Z"
+}
