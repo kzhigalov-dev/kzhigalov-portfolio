@@ -1,4 +1,6 @@
-import * as THREE from 'three';
+// Three.js is loaded as a local script before this file. No package manager or
+// module build step is required to edit and run the portfolio.
+const THREE = window.THREE;
 
 // A small, original 3D world for the portfolio. The case studies below remain
 // the source of truth and provide a complete path when WebGL is unavailable.

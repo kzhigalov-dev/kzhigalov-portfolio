@@ -29,4 +29,4 @@
 Доработка по Taste Skill: https://github.com/Leonxlnx/taste-skill
 Использованы design-taste-frontend и рекомендации redesign-existing-projects: аудит перед изменениями, асимметрия, читаемая типографика, реальные изображения и проверка состояний взаимодействия. Для следующей итерации также применены ui-ux-pro-max и обновлённый frontend-design.
 
-3D-библиотека: Three.js v0.186.1, https://github.com/mrdoob/three.js, лицензия MIT в assets/three-LICENSE.txt. Библиотека включена локально через esbuild; для просмотра сайта сборка не требуется.
+3D-библиотека: Three.js v0.186.1, https://github.com/mrdoob/three.js, лицензия MIT в assets/three-LICENSE.txt. Нужные части библиотеки включены как локальный файл assets/three.js; сайт не требует npm или сборки.
