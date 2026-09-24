@@ -24,7 +24,7 @@ for path in ['assets/retail.png', 'assets/fraudlens.png', 'assets/favicon.svg']:
 if (root / 'portfolio-mobile.html').exists():
     (root / 'portfolio-mobile.html').write_text(html)
 with zipfile.ZipFile(root / 'portfolio.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-    for name in ['index.html', 'style.css', 'script.js', 'README.txt', 'SOURCES.md', 'build.py', 'portfolio-standalone.html']:
+    for name in ['index.html', 'style.css', 'script.js', 'README.md', 'SOURCES.md', 'build.py', 'portfolio-standalone.html']:
         archive.write(root / name, name)
     for asset in sorted((root / 'assets').iterdir()):
         if asset.is_file():
