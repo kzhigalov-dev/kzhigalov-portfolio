@@ -2,7 +2,7 @@
 
 Повторно проверено 24 сентября 2026 года.
 
-- Имя, профессиональное направление, город, образование, курсы, навыки, статус поиска и почта: https://github.com/kzhigalov-dev/kzhigalov-dev/blob/main/README.md
+- Имя, профессиональное направление, город, образование, курсы, навыки и почта: https://github.com/kzhigalov-dev/kzhigalov-dev/blob/main/README.md
 - Retail Demand Planner, описание и метрики: https://github.com/kzhigalov-dev/retail-demand-planner/blob/main/README.md
 - FraudLens, описание и метрики: https://github.com/kzhigalov-dev/fraudlens/blob/main/README.md
 - Job Ranker, подход, ограничения и NDCG@10 на двух временных окнах: https://github.com/kzhigalov-dev/job-ranker/blob/main/README.md
@@ -22,11 +22,11 @@
 
 ## Дизайн и ресурсы
 
-Обновление дизайна: авторская Canvas-поверхность и HTML/CSS-компоненты. Каталог 21st был проверен, но поиск требовал авторизации; компоненты из него не копировались.
+Обновление дизайна: авторская 3D-карта на Three.js и HTML/CSS-компоненты. Референс по уровню интерактивности — https://bruno-simon.com/#cybertruck. Модель ровера, станции, ландшафт, цвета и композиция созданы специально для этого портфолио; код и модели референса не копировались.
 
 Шрифт Manrope: https://github.com/google/fonts/tree/main/ofl/manrope — SIL Open Font License 1.1, копия лицензии в assets/Manrope-LICENSE.txt. Шрифт хранится локально.
 
 Доработка по Taste Skill: https://github.com/Leonxlnx/taste-skill
 Использованы design-taste-frontend и рекомендации redesign-existing-projects: аудит перед изменениями, асимметрия, читаемая типографика, реальные изображения и проверка состояний взаимодействия. Для следующей итерации также применены ui-ux-pro-max и обновлённый frontend-design.
 
-Генеративный узор: css-doodle v0.51.0, https://github.com/css-doodle/css-doodle, лицензия MIT в assets/css-doodle-LICENSE.txt. Библиотека включена локально. Дизайн узора и остальные элементы страницы созданы для этого портфолио.
+3D-библиотека: Three.js v0.186.1, https://github.com/mrdoob/three.js, лицензия MIT в assets/three-LICENSE.txt. Библиотека включена локально через esbuild; для просмотра сайта сборка не требуется.
