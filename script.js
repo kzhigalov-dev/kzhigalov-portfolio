@@ -271,3 +271,77 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
   }, { rootMargin: '-15% 0px -60% 0px' });
   document.querySelectorAll('main > section').forEach(section => observer.observe(section));
 })();
+
+// A small data probe belongs to the 3D map and its controls. Text and dialogs
+// retain the system cursor, and the effect never runs on touch or reduced motion.
+(() => {
+  const cursor = document.querySelector('#signal-cursor');
+  const scene = document.querySelector('#experience');
+  const capability = window.matchMedia('(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference)');
+  let stationId = null;
+  let overWorld = false;
+  let visible = false;
+  let frame = 0;
+  let pulseTimer = 0;
+  let x = -100;
+  let y = -100;
+
+  function hideCursor() {
+    visible = false;
+    overWorld = false;
+    document.documentElement.classList.remove('signal-cursor-ready');
+    cursor.classList.remove('is-visible', 'is-action', 'is-light-action', 'is-station', 'is-flipped', 'is-pressed');
+  }
+
+  function placeCursor() {
+    frame = 0;
+    cursor.style.transform = `translate3d(${x}px,${y}px,0)`;
+  }
+
+  function moveCursor(event) {
+    if (!capability.matches || event.pointerType === 'touch' || dialog.open || scene.classList.contains('experience--fallback')) {
+      hideCursor();
+      return;
+    }
+    const target = event.target instanceof Element ? event.target : null;
+    const world = !!target?.closest('#experience-viewport');
+    const action = !!target?.closest('.experience a,.experience button,.experience summary');
+    if (!world && !action) {
+      hideCursor();
+      return;
+    }
+    overWorld = world;
+    visible = true;
+    x = event.clientX;
+    y = event.clientY;
+    cursor.classList.add('is-visible');
+    cursor.classList.toggle('is-action', action);
+    cursor.classList.toggle('is-light-action', action && !!target.closest('.world-exhibit,.experience-map[open]') && !target.closest('#world-exhibit-open'));
+    cursor.classList.toggle('is-station', world && !!stationId);
+    cursor.classList.toggle('is-flipped', x > window.innerWidth - 140);
+    document.documentElement.classList.add('signal-cursor-ready');
+    if (!frame) frame = requestAnimationFrame(placeCursor);
+  }
+
+  document.addEventListener('portfolio:station-hover', event => {
+    stationId = event.detail.id;
+    cursor.style.setProperty('--signal-accent', worldFacts[stationId]?.color || '#f6774f');
+    if (visible && overWorld) cursor.classList.toggle('is-station', !!stationId);
+  });
+  document.addEventListener('pointermove', moveCursor, { passive: true });
+  document.addEventListener('pointerover', moveCursor, { passive: true });
+  document.addEventListener('pointerout', event => { if (!event.relatedTarget) hideCursor(); });
+  document.addEventListener('pointerdown', () => {
+    if (!visible) return;
+    cursor.classList.remove('is-pressed');
+    requestAnimationFrame(() => { if (visible) cursor.classList.add('is-pressed'); });
+    clearTimeout(pulseTimer);
+    pulseTimer = setTimeout(() => cursor.classList.remove('is-pressed'), 390);
+  });
+  document.addEventListener('click', () => { if (dialog.open) hideCursor(); });
+  document.addEventListener('keydown', hideCursor, true);
+  document.addEventListener('scroll', hideCursor, { passive: true });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hideCursor(); });
+  window.addEventListener('blur', hideCursor);
+  capability.addEventListener('change', hideCursor);
+})();

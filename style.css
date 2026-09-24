@@ -420,3 +420,30 @@ dialog .dialog-lead{font-size:18px}
 @media(min-width:900px){.experience-glow{background:linear-gradient(90deg,#101a34f0 0%,#101a34b8 37%,#101a3438 70%,transparent 90%),linear-gradient(0deg,#101a34a0,transparent 30%,transparent 76%,#101a345a)}}
 @media(min-width:1101px){.experience-glow{background:linear-gradient(90deg,#101a34ee 0%,#101a3499 32%,#101a3420 58%,transparent 78%),linear-gradient(0deg,#101a34c0,transparent 24%,transparent 82%,#101a345a)}}
 @media(prefers-reduced-motion:reduce){.experience-intro,.experience-actions button{transition:none}}
+
+/* A signal probe for the project world; ordinary reading keeps the native cursor. */
+@keyframes signal-pulse{from{opacity:.8;transform:scale(.8)}to{opacity:0;transform:scale(1.7)}}
+.signal-cursor{position:fixed;top:0;left:0;z-index:100;width:0;height:0;display:none;pointer-events:none;color:var(--orange);opacity:0;transform:translate3d(-100px,-100px,0);transition:opacity .16s ease}
+.signal-cursor.is-visible{opacity:1}
+.signal-cursor-ring,.signal-cursor-dot,.signal-cursor-label{position:absolute;pointer-events:none}
+.signal-cursor-ring{left:0;top:0;width:29px;height:29px;border:1px solid currentColor;border-radius:50%;transform:translate(-50%,-50%);background:linear-gradient(currentColor,currentColor) center top/1px 5px no-repeat,linear-gradient(currentColor,currentColor) center bottom/1px 5px no-repeat,linear-gradient(currentColor,currentColor) left center/5px 1px no-repeat,linear-gradient(currentColor,currentColor) right center/5px 1px no-repeat;box-shadow:0 0 0 1px #101a3426;transition:width .22s cubic-bezier(.22,1,.36,1),height .22s cubic-bezier(.22,1,.36,1),color .22s}
+.signal-cursor-ring::after{content:"";position:absolute;inset:-1px;border:1px solid currentColor;border-radius:50%;opacity:0}
+.signal-cursor.is-pressed .signal-cursor-ring::after{animation:signal-pulse .38s ease-out both}
+.signal-cursor-dot{left:0;top:0;width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px #101a34a8;transform:translate(-50%,-50%)}
+.signal-cursor-label{left:37px;top:0;padding:7px 9px;border:1px solid currentColor;border-radius:2px;background:#101a34e8;color:inherit;font:10px/1 monospace;letter-spacing:.6px;white-space:nowrap;opacity:0;transform:translate(-5px,-50%);transition:opacity .16s ease,transform .2s ease}
+.signal-cursor-label span{font-size:13px;margin-left:5px}
+.signal-cursor.is-action{color:#fffaf0}
+.signal-cursor.is-action .signal-cursor-ring{width:39px;height:39px}
+.signal-cursor.is-light-action{color:#2735ca}
+.signal-cursor.is-light-action .signal-cursor-dot{box-shadow:0 0 0 3px #f7f6f1}
+.signal-cursor.is-station{color:var(--signal-accent,var(--orange))}
+.signal-cursor.is-station .signal-cursor-ring{width:51px;height:51px}
+.signal-cursor.is-station .signal-cursor-label{opacity:1;transform:translate(0,-50%)}
+.signal-cursor.is-flipped .signal-cursor-label{left:auto;right:37px;transform:translate(5px,-50%)}
+.signal-cursor.is-station.is-flipped .signal-cursor-label{transform:translate(0,-50%)}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  .signal-cursor{display:block}
+  html.signal-cursor-ready .experience:not(.experience--fallback) .experience-viewport,
+  html.signal-cursor-ready .experience:not(.experience--fallback) .experience-viewport canvas,
+  html.signal-cursor-ready .experience:not(.experience--fallback) :is(a,button,summary){cursor:none!important}
+}

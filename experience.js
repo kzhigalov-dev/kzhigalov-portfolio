@@ -468,10 +468,17 @@ if (renderer) {
     pointerDown = null;
   });
   renderer.domElement.addEventListener('pointermove', event => {
-    hoveredId = pick(event);
-    renderer.domElement.style.cursor = hoveredId ? 'pointer' : 'grab';
+    const nextHoveredId = pick(event);
+    if (nextHoveredId !== hoveredId) {
+      hoveredId = nextHoveredId;
+      document.dispatchEvent(new CustomEvent('portfolio:station-hover', { detail: { id: hoveredId } }));
+    }
+    renderer.domElement.style.cursor = document.documentElement.classList.contains('signal-cursor-ready') ? '' : hoveredId ? 'pointer' : 'grab';
   });
-  renderer.domElement.addEventListener('pointerleave', () => { hoveredId = null; });
+  renderer.domElement.addEventListener('pointerleave', () => {
+    hoveredId = null;
+    document.dispatchEvent(new CustomEvent('portfolio:station-hover', { detail: { id: null } }));
+  });
   renderer.domElement.addEventListener('webglcontextlost', event => { event.preventDefault(); cancelAnimationFrame(frame); section.classList.add('experience--fallback'); setStatus('3D-сцена остановилась. Все проекты доступны на карте и ниже.'); });
 
   function resize() {
