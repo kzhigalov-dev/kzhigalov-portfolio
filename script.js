@@ -148,7 +148,8 @@ function showWorldExhibit(id, source = 'canvas') {
   }
   if (wasHidden) worldReturnFocus = source === 'map' ? document.querySelector('.experience-map summary') : document.querySelector('#experience-viewport');
   selectedWorldProject = id;
-  document.querySelector('#world-exhibit-index').textContent = `${String(worldOrder.indexOf(id) + 1).padStart(2, '0')} / 07`;
+  const track = window.portfolioGame?.trackLabel(id);
+  document.querySelector('#world-exhibit-index').textContent = `${String(worldOrder.indexOf(id) + 1).padStart(2, '0')} / 07${track ? ` · ${track}` : ''}`;
   worldExhibitTitle.textContent = project.title;
   document.querySelector('#world-exhibit-task').textContent = facts.task;
   document.querySelector('#world-exhibit-approach').textContent = facts.approach;

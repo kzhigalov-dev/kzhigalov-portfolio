@@ -14,10 +14,11 @@ const stations = [
   { id: 'ranker', name: 'Job Ranker', color: 0x9eb8ff, kind: 'rank', x: 0, z: -7 },
   { id: 'retail', name: 'Retail Planner', color: 0x9be7c3, kind: 'retail', x: -6.5, z: -3.5 },
   { id: 'fraud', name: 'FraudLens', color: 0xff9877, kind: 'fraud', x: 6.5, z: -3.5 },
-  { id: 'market', name: 'MarketAI', color: 0xffc6a4, kind: 'market', x: -8, z: 3.5 },
-  { id: 'creatix', name: 'Creatix', color: 0xa7e7d8, kind: 'video', x: 8, z: 3.5 },
-  { id: 'shorts', name: 'Series Shorts', color: 0xb8b9ff, kind: 'shorts', x: -4.5, z: 8 },
-  { id: 'museum', name: 'Губахинский музей', color: 0xe6d8b8, kind: 'museum', x: 4.5, z: 8 }
+  // AI products form a south-western arc; the web project stands alone in the east.
+  { id: 'market', name: 'MarketAI', color: 0xffc6a4, kind: 'market', x: -8.47, z: 1.49 },
+  { id: 'shorts', name: 'Series Shorts', color: 0xb8b9ff, kind: 'shorts', x: -5.53, z: 6.59 },
+  { id: 'creatix', name: 'Creatix', color: 0xa7e7d8, kind: 'video', x: 0, z: 8.6 },
+  { id: 'museum', name: 'Губахинский музей', color: 0xe6d8b8, kind: 'museum', x: 7.04, z: 4.93 }
 ];
 
 function setStatus(message) {
@@ -359,17 +360,73 @@ if (renderer) {
     points.push({ info, group, sculpture, ring, halo, path, route, pulse, pulseGlow, label, beacon, done, index });
   });
 
-  // Data signals are optional finds on the roads between stations.
+  // District names on the ground show how the profile is organised.
+  function makeGroundLabel(title, subtitle, x, z, width) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(214,226,255,.9)';
+    ctx.font = '800 66px Manrope, Arial, sans-serif';
+    ctx.fillText(title, 512, 74, 980);
+    ctx.fillStyle = 'rgba(214,226,255,.62)';
+    ctx.font = '600 34px Manrope, Arial, sans-serif';
+    ctx.fillText(subtitle, 512, 130, 980);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry(width, width / 6.4),
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0.78, depthWrite: false })
+    );
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.set(x, -0.012, z);
+    scene.add(plane);
+  }
+  makeGroundLabel('ML-МОДЕЛИ', 'прогноз · риск · ранжирование', 0, -4.9, 5.4);
+  makeGroundLabel('AI-ПРОДУКТЫ', 'генерация · видео · агенты', -3.3, 3.95, 5.4);
+  makeGroundLabel('ВЕБ', 'сайты и интерфейсы', 4.3, 2.9, 4.2);
+
+  function makeSkillLabel(name) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 100;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(16,26,52,.92)';
+    ctx.beginPath();
+    ctx.roundRect(6, 6, 500, 88, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,180,143,.85)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = '#ffe3d3';
+    ctx.font = '700 44px Manrope, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(name, 256, 52, 470);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: 0, depthTest: false }));
+    sprite.scale.set(2.2, 0.43, 1);
+    sprite.position.y = 1.62;
+    return sprite;
+  }
+
+  // Each signal is a skill from the toolbox. ML skills sit in the northern
+  // district, engineering and web skills along the southern roads.
   const signalMaterial = material(0xfff1dc, { emissive: 0xffb48f, emissiveIntensity: 0.85, roughness: 0.2 });
   const signalGeometry = new THREE.OctahedronGeometry(0.2, 0);
+  const skillNames = game?.skills.map(skill => skill.name) || [];
   const signals = [
-    ...[-90, -30, 30, 90, 150, 210].map(angle => [3.8, angle]),
-    ...[0, 42, 90, 138, 182, -121].map(angle => [9.3, angle])
-  ].map(([radius, degrees], index) => {
+    [3.8, -90], [3.8, -150], [9.3, -120], [9.3, -60], [3.8, -30], [9.3, 2.5], [3.8, 30],
+    [9.3, 62.5], [3.8, 90], [9.3, 110], [3.8, 150], [9.3, 150], [9.3, 190]
+  ].slice(0, skillNames.length || 13).map(([radius, degrees], index) => {
     const angle = degrees * Math.PI / 180;
     const group = new THREE.Group();
     group.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
     scene.add(group);
+    const label = skillNames[index] ? makeSkillLabel(skillNames[index]) : null;
+    if (label) group.add(label);
     const gem = new THREE.Mesh(signalGeometry, signalMaterial);
     gem.scale.set(1, 1.55, 1);
     gem.position.y = 0.78;
@@ -385,9 +442,9 @@ if (renderer) {
     base.rotation.x = -Math.PI / 2;
     base.position.y = -0.01;
     group.add(base);
-    const collected = !!game?.hasSignal(index);
+    const collected = !!game?.hasSkill(index);
     group.visible = !collected;
-    return { index, group, gem, glow, base, collected, burstAt: 0 };
+    return { index, group, gem, glow, base, label, collected, burstAt: 0 };
   });
 
   function syncProgress() {
@@ -399,7 +456,7 @@ if (renderer) {
       }
     });
     signals.forEach(signal => {
-      const collected = !!game?.hasSignal(signal.index);
+      const collected = !!game?.hasSkill(signal.index);
       if (collected === signal.collected) return;
       signal.collected = collected;
       signal.burstAt = 0;
@@ -519,9 +576,6 @@ if (renderer) {
   const radarContext = radar.getContext('2d');
   const stationColors = Object.fromEntries(stations.map(station => [station.id, `#${station.color.toString(16).padStart(6, '0')}`]));
   let shownSpeed = -1;
-  let travelled = 0;
-  let travelClock = 0;
-  let topSpeed = 0;
 
   function drawRadar(t) {
     const size = radar.clientWidth;
@@ -638,7 +692,9 @@ if (renderer) {
   function activate() {
     setWorldMode(true);
     viewport.focus({ preventScroll: true });
-    setStatus('Езжайте к светящимся станциям и собирайте сигналы. Enter покажет досье проекта. Esc вернёт подсказку.');
+    setStatus(window.matchMedia('(pointer: coarse)').matches
+      ? 'Станции — мои проекты, кристаллы на дорогах — навыки. Подъезжайте ближе и нажмите «Выбрать».'
+      : 'Станции — мои проекты, кристаллы на дорогах — навыки. Подъезжайте ближе; Enter откроет досье, J — журнал.');
   }
   startButton.addEventListener('click', activate);
   viewport.addEventListener('focus', () => setWorldMode(true));
@@ -766,7 +822,6 @@ if (renderer) {
       const angle = Math.atan2(rover.position.z, rover.position.x);
       rover.position.x = Math.cos(angle) * 10.1;
       rover.position.z = Math.sin(angle) * 10.1;
-      if (Math.abs(speed) > 1) game?.unlock('edge');
       speed *= -0.28;
     }
     // Station platforms are solid: the rover slides around them instead of driving through.
@@ -779,15 +834,6 @@ if (renderer) {
         rover.position.z = station.z + dz / gap * 2.2;
         speed = Math.sign(speed) * Math.min(Math.abs(speed), 2.4);
       }
-    }
-    if (speed > 8.3) game?.unlock('boost');
-    travelled += Math.abs(speed) * dt;
-    topSpeed = Math.max(topSpeed, Math.abs(speed) * 12);
-    travelClock += dt;
-    if (travelClock > 1 && travelled > 0) {
-      game?.addDistance(travelled, topSpeed);
-      travelled = 0;
-      travelClock = 0;
     }
     wheels.forEach(({ pivot, spin, front }) => {
       spin.rotation.x -= speed * dt / 0.29;
@@ -806,7 +852,7 @@ if (renderer) {
     if (nextNear !== nearId) {
       nearId = nextNear;
       if (nearId) setStatus(`Рядом: ${nearest.station.name}. Нажмите Enter или «Выбрать».`);
-      else if (active) setStatus('Езжайте к светящимся станциям. Enter покажет досье проекта.');
+      else if (active) setStatus('Езжайте к станциям-проектам и собирайте навыки. Enter покажет досье проекта.');
     }
     points.forEach(({ info, sculpture, ring, halo, path, route, pulse, pulseGlow, label, index }) => {
       const selected = info.id === selectedId;
@@ -842,16 +888,20 @@ if (renderer) {
     });
 
     signals.forEach(signal => {
-      const { group, gem, glow, base } = signal;
+      const { group, gem, glow, base, label } = signal;
       if (signal.collected) {
         if (!signal.burstAt) return;
-        const age = (now - signal.burstAt) / 480;
+        const age = (now - signal.burstAt) / 650;
         if (age >= 1 || motion.matches) { group.visible = false; signal.burstAt = 0; return; }
         gem.scale.set(1 - age, (1 - age) * 1.55, 1 - age);
         gem.position.y = 0.78 + age * 0.9;
         glow.scale.setScalar(1.15 + age * 3.2);
         glow.material.opacity = 0.9 * (1 - age);
         base.scale.setScalar(1 + age * 3);
+        if (label) {
+          label.position.y = 1.62 + age * 0.8;
+          label.material.opacity = 1 - age;
+        }
         return;
       }
       if (!motion.matches) {
@@ -860,12 +910,16 @@ if (renderer) {
         glow.position.y = gem.position.y;
         glow.material.opacity = 0.5 + Math.sin(t * 3.1 + signal.index) * 0.12;
       }
-      if (Math.hypot(rover.position.x - group.position.x, rover.position.z - group.position.z) < 1.1) {
+      const reach = Math.hypot(rover.position.x - group.position.x, rover.position.z - group.position.z);
+      // The skill name appears as the rover approaches, so the map reads as a tech stack.
+      if (label) label.material.opacity = THREE.MathUtils.lerp(label.material.opacity, active && !selectedId && reach < 4.3 ? 1 : 0, motion.matches ? 1 : 1 - Math.exp(-7 * dt));
+      if (reach < 1.1) {
         signal.collected = true;
         signal.burstAt = now;
-        game?.collectSignal(signal.index);
-        const count = game?.signalCount() ?? 0;
-        setStatus(count === signals.length ? `Все ${signals.length} сигналов данных собраны. Загляните в журнал: J.` : `Сигнал данных собран: ${count} из ${signals.length}.`);
+        game?.collectSkill(signal.index);
+        const count = game?.skillCount() ?? 0;
+        const name = skillNames[signal.index] || 'Навык';
+        setStatus(count === signals.length ? `Все ${signals.length} навыков найдены. Загляните в журнал: J.` : `Найден навык «${name}»: ${count} из ${signals.length}.`);
       }
     });
 

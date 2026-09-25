@@ -1,43 +1,64 @@
 'use strict';
 
-// Игровой слой «Экспедиция»: станции, сигналы данных, достижения и журнал.
+// Игровой слой «Экспедиция»: станции — реальные проекты, сигналы на карте — навыки
+// из моего стека, достижения ведут к кейсам, коду, профилю и контакту.
 // Прогресс хранится только в браузере посетителя; все кейсы доступны и без игры.
 (() => {
-  const STORAGE_KEY = 'kz-expedition-v1';
-  const SIGNAL_TOTAL = 12;
-  const DISTANCE_GOAL = 200;
+  const STORAGE_KEY = 'kz-expedition-v2';
   const stationIds = Object.keys(worldFacts);
+  const tracks = [
+    { id: 'ml', label: 'ML-модели', ids: ['retail', 'fraud', 'ranker'] },
+    { id: 'ai', label: 'AI-продукты', ids: ['market', 'creatix', 'shorts'] },
+    { id: 'web', label: 'Веб', ids: ['museum'] }
+  ];
+  const trackOf = id => tracks.find(track => track.ids.includes(id));
+
+  // Порядок совпадает с позициями сигналов в experience.js: ML-навыки лежат
+  // в северной части карты, инженерные и веб-навыки — в южной.
+  const skills = [
+    { name: 'Python', where: 'Retail Demand Planner, FraudLens, Job Ranker' },
+    { name: 'pandas / NumPy', note: 'Подготовка табличных данных и признаков.' },
+    { name: 'LightGBM', where: 'Квантильный прогноз, скоринг риска и LambdaRank: Retail, FraudLens, Job Ranker' },
+    { name: 'Learning to Rank', where: 'Двухэтапное ранжирование вакансий в Job Ranker' },
+    { name: 'scikit-learn', note: 'Базовые модели, метрики и сравнение с baseline.' },
+    { name: 'MLflow', where: 'Учёт экспериментов в Job Ranker' },
+    { name: 'Next.js', where: 'Retail Demand Planner, MarketAI, Creatix, Губахинский музей' },
+    { name: 'TypeScript', where: 'MarketAI, Series Shorts Agent, Губахинский музей' },
+    { name: 'FastAPI', where: 'Сервисы моделей в Retail Demand Planner и FraudLens' },
+    { name: 'Docker', where: 'Упаковка Retail Demand Planner' },
+    { name: 'PostgreSQL', where: 'Стенд, проверенный в F2F Bank Tests' },
+    { name: 'Playwright', where: '25 E2E-сценариев в F2F Bank Tests' },
+    { name: 'pytest / CI', note: 'Автотесты и непрерывная интеграция.' }
+  ];
+  const SKILL_TOTAL = skills.length;
+
   const achievements = [
     { id: 'launch', icon: '▲', title: 'Зажигание', text: 'Запустить ровер и выйти на карту.' },
-    { id: 'first-station', icon: '◎', title: 'Первый контакт', text: 'Открыть досье первой станции.' },
-    { id: 'boost', icon: '»', title: 'Форсаж', text: 'Разогнаться с Shift до предельной скорости.' },
-    { id: 'edge', icon: '◌', title: 'Край карты', text: 'Доехать до границы мира.' },
-    { id: 'distance', icon: '∿', title: 'Дальний рейс', text: `Проехать ${DISTANCE_GOAL} метров по карте.` },
-    { id: 'collector', icon: '◆', title: 'Сборщик сигналов', text: `Собрать все ${SIGNAL_TOTAL} сигналов данных.` },
+    { id: 'first-station', icon: '◎', title: 'Первый контакт', text: 'Открыть досье первого проекта.' },
+    { id: 'ml', icon: '◆', title: 'Трек ML', text: 'Изучить прогноз спроса, антифрод и ранжирование.' },
+    { id: 'ai', icon: '✦', title: 'Трек AI-продуктов', text: 'Изучить MarketAI, Creatix и Series Shorts Agent.' },
+    { id: 'skills', icon: '⬡', title: 'Стек собран', text: `Найти на карте все ${SKILL_TOTAL} навыков.` },
     { id: 'archive', icon: '▤', title: 'Архивариус', text: 'Открыть полный кейс проекта.' },
-    { id: 'all-stations', icon: '★', title: 'Маршрут пройден', text: 'Исследовать все семь станций.' },
-    { id: 'contact', icon: '✉', title: 'Сигнал отправлен', text: 'Скопировать почту или написать автору.' },
+    { id: 'source', icon: '⌥', title: 'Код на виду', text: 'Перейти к исходному коду проекта на GitHub.' },
+    { id: 'about', icon: '◐', title: 'Знакомство', text: 'Прочитать профиль автора маршрута.' },
+    { id: 'all-stations', icon: '★', title: 'Маршрут пройден', text: 'Изучить все семь проектов.' },
+    { id: 'contact', icon: '✉', title: 'Сигнал отправлен', text: 'Скопировать почту или написать мне.' },
     { id: 'secret', icon: '?', title: 'Старая школа', text: 'Ввести классический код из видеоигр: ↑ ↑ ↓ ↓ ← → ← → B A.', secret: true }
   ];
 
-  const state = { stations: new Set(), signals: new Set(), achievements: new Set(), distance: 0, topSpeed: 0 };
+  const state = { stations: new Set(), skills: new Set(), achievements: new Set() };
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (saved) {
       saved.stations?.forEach(id => stationIds.includes(id) && state.stations.add(id));
-      saved.signals?.forEach(index => index >= 0 && index < SIGNAL_TOTAL && state.signals.add(index));
+      saved.skills?.forEach(index => index >= 0 && index < SKILL_TOTAL && state.skills.add(index));
       saved.achievements?.forEach(id => achievements.some(item => item.id === id) && state.achievements.add(id));
-      state.distance = Number(saved.distance) || 0;
-      state.topSpeed = Number(saved.topSpeed) || 0;
     }
   } catch { /* Хранилище недоступно: прогресс живёт до перезагрузки. */ }
 
   function save() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        stations: [...state.stations], signals: [...state.signals], achievements: [...state.achievements],
-        distance: Math.round(state.distance), topSpeed: state.topSpeed
-      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ stations: [...state.stations], skills: [...state.skills], achievements: [...state.achievements] }));
     } catch { /* Сохранение необязательно. */ }
   }
 
@@ -52,7 +73,7 @@
     } catch { /* Без Popover API уведомления остаются обычным fixed-блоком. */ }
   }
   function toast(icon, label, title, text) {
-    announcer.textContent = `${label}: ${title}.`;
+    announcer.textContent = `${label}: ${title}.${text ? ` ${text}` : ''}`;
     const item = document.createElement('div');
     item.className = 'game-toast';
     const mark = document.createElement('span');
@@ -80,7 +101,7 @@
         item.remove();
         if (!toasts.children.length && toasts.hidePopover && toasts.matches(':popover-open')) toasts.hidePopover();
       }, 450);
-    }, 4600);
+    }, 4800);
   }
   // A dialog opened after a toast would cover it, so the toasts rise again.
   document.querySelectorAll('dialog').forEach(dialog => new MutationObserver(() => {
@@ -89,45 +110,47 @@
 
   function unlock(id) {
     const achievement = achievements.find(item => item.id === id);
-    if (!achievement || state.achievements.has(id)) return;
+    if (!achievement || state.achievements.has(id)) return false;
     state.achievements.add(id);
     toast(achievement.icon, 'Достижение открыто', achievement.title, achievement.text);
     changed();
+    return true;
   }
 
   function discover(id) {
     if (!stationIds.includes(id) || state.stations.has(id)) return;
     state.stations.add(id);
     const count = state.stations.size;
-    // Milestones replace the regular station notice so only one toast appears.
-    if (count === 1) unlock('first-station');
-    else if (count === stationIds.length) unlock('all-stations');
-    else toast('◎', `Станция ${count} из ${stationIds.length}`, projects[id].title, 'Отмечена в журнале экспедиции.');
+    const track = trackOf(id);
+    // A milestone replaces the regular project notice so only one toast appears.
+    const milestone = count === 1 ? unlock('first-station')
+      : count === stationIds.length ? unlock('all-stations')
+        : track.ids.length > 1 && track.ids.every(item => state.stations.has(item)) ? unlock(track.id) : false;
+    if (!milestone) toast('◎', `Проект ${count} из ${stationIds.length} · ${track.label}`, projects[id].title, projects[id].metric);
+    // Tracks completed on the way to a milestone are still recorded quietly.
+    tracks.forEach(item => {
+      if (item.ids.length > 1 && item.ids.every(station => state.stations.has(station))) state.achievements.add(item.id);
+    });
     changed();
   }
 
-  function collectSignal(index) {
-    if (index < 0 || index >= SIGNAL_TOTAL || state.signals.has(index)) return;
-    state.signals.add(index);
-    if (state.signals.size === SIGNAL_TOTAL) unlock('collector');
+  function collectSkill(index) {
+    const skill = skills[index];
+    if (!skill || state.skills.has(index)) return;
+    state.skills.add(index);
+    if (state.skills.size === SKILL_TOTAL) unlock('skills');
+    else toast('⬡', `Навык ${state.skills.size} из ${SKILL_TOTAL}`, skill.name, skill.where ? `Где применяю: ${skill.where}.` : skill.note);
     changed();
-  }
-
-  let saveTimer = 0;
-  function addDistance(meters, speed) {
-    state.distance += meters;
-    state.topSpeed = Math.max(state.topSpeed, Math.round(speed));
-    if (state.distance >= DISTANCE_GOAL) unlock('distance');
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(save, 800);
   }
 
   // Все счётчики на странице читают одно состояние.
   const chip = document.querySelector('#expedition-chip');
   const complete = document.querySelector('#expedition-complete');
+  const toolboxChips = [...document.querySelectorAll('.toolbox > div > span')];
+  const toolboxCount = document.querySelector('#toolbox-found');
   function render() {
-    const counts = { stations: state.stations.size, signals: state.signals.size, achievements: state.achievements.size };
-    const totals = { stations: stationIds.length, signals: SIGNAL_TOTAL, achievements: achievements.length };
+    const counts = { stations: state.stations.size, skills: state.skills.size, achievements: state.achievements.size };
+    const totals = { stations: stationIds.length, skills: SKILL_TOTAL, achievements: achievements.length };
     document.querySelectorAll('[data-game-count]').forEach(element => {
       const value = String(counts[element.dataset.gameCount]);
       if (element.textContent !== value) {
@@ -137,22 +160,28 @@
         element.classList.add('is-bumped');
       }
     });
+    document.querySelectorAll('[data-game-total]').forEach(element => { element.textContent = String(totals[element.dataset.gameTotal]); });
     document.querySelectorAll('[data-game-bar]').forEach(element => {
       const key = element.dataset.gameBar;
       element.style.transform = `scaleX(${counts[key] / totals[key]})`;
     });
     chip.style.setProperty('--expedition-progress', String(100 - counts.stations / totals.stations * 100));
     chip.classList.toggle('is-complete', counts.stations === totals.stations);
-    chip.setAttribute('aria-label', `Журнал экспедиции: исследовано ${counts.stations} из ${totals.stations} станций`);
+    chip.setAttribute('aria-label', `Журнал экспедиции: изучено ${counts.stations} из ${totals.stations} проектов, найдено ${counts.skills} из ${totals.skills} навыков`);
     complete.hidden = counts.stations !== totals.stations;
     document.querySelectorAll('[data-world-project]').forEach(button => {
       const done = state.stations.has(button.dataset.worldProject);
       button.classList.toggle('is-discovered', done);
-      button.setAttribute('aria-label', `${button.textContent}${done ? ' — исследовано' : ''}`);
+      button.setAttribute('aria-label', `${button.textContent}${done ? ' — изучено' : ''}`);
     });
     stationIds.forEach(id => {
       document.querySelector(`#work [data-project="${id}"]`)?.closest('.project')?.classList.toggle('is-discovered', state.stations.has(id));
     });
+    // Skills found on the map light up in the profile toolbox.
+    skills.forEach((skill, index) => {
+      toolboxChips.find(item => item.textContent.trim() === skill.name)?.classList.toggle('is-found', state.skills.has(index));
+    });
+    toolboxCount.hidden = !counts.skills;
     if (journal.open) renderJournal();
   }
 
@@ -164,7 +193,18 @@
 
   const journal = document.querySelector('#journal');
   const resetButton = document.querySelector('#journal-reset');
+  function summary() {
+    const count = state.stations.size;
+    if (!count && !state.skills.size) {
+      return 'Пока маршрут пуст. На севере карты — ML-модели: прогноз, антифрод и ранжирование; на юго-западе — AI-продукты; на востоке — веб. Каждый сигнал на дороге — навык из моего стека.';
+    }
+    const byTrack = tracks.map(track => `${track.label} — ${track.ids.filter(id => state.stations.has(id)).length}/${track.ids.length}`).join(', ');
+    const metrics = stationIds.filter(id => state.stations.has(id) && trackOf(id).id === 'ml').map(id => `${projects[id].title}: ${projects[id].metric}`);
+    return `Изучено проектов: ${count} из ${stationIds.length} (${byTrack}). Найдено навыков: ${state.skills.size} из ${SKILL_TOTAL}.${metrics.length ? ` Результаты ML: ${metrics.join('; ')}.` : ''}`;
+  }
+
   function renderJournal() {
+    document.querySelector('#journal-summary').textContent = summary();
     const stationList = document.querySelector('#journal-stations');
     stationList.replaceChildren(...stationIds.map(id => {
       const done = state.stations.has(id);
@@ -174,13 +214,22 @@
       const name = document.createElement('span');
       name.textContent = projects[id].title;
       const status = document.createElement('small');
-      status.textContent = done ? 'Исследована' : 'Не найдена';
+      status.textContent = `${trackOf(id).label} · ${done ? projects[id].metric : 'не изучен'}`;
       const go = document.createElement('button');
       go.type = 'button';
       go.textContent = 'На карту';
       go.setAttribute('aria-label', `Показать ${projects[id].title} на карте`);
       go.addEventListener('click', () => travelTo(id));
       item.append(name, status, go);
+      return item;
+    }));
+    const skillList = document.querySelector('#journal-skills');
+    skillList.replaceChildren(...skills.map((skill, index) => {
+      const item = document.createElement('li');
+      const found = state.skills.has(index);
+      item.className = found ? 'is-done' : '';
+      item.textContent = skill.name;
+      item.title = found ? (skill.where || skill.note) : 'Найдите этот сигнал на карте';
       return item;
     }));
     const achievementList = document.querySelector('#journal-achievements');
@@ -200,7 +249,6 @@
       item.append(icon, title, text, label);
       return item;
     }));
-    document.querySelector('#journal-log').textContent = `Пройдено ${Math.round(state.distance)} м · максимальная скорость ${state.topSpeed} км/ч`;
   }
 
   function openJournal() {
@@ -237,25 +285,38 @@
       return;
     }
     state.stations.clear();
-    state.signals.clear();
+    state.skills.clear();
     state.achievements.clear();
-    state.distance = 0;
-    state.topSpeed = 0;
     resetButton.classList.remove('is-confirming');
     resetButton.textContent = 'Прогресс сброшен';
     changed();
   });
 
-  // Станция засчитывается и в 3D-мире, и при открытии кейса из архива.
+  // Проект засчитывается и в 3D-мире, и при открытии кейса из архива.
   document.addEventListener('portfolio:station-select', event => discover(event.detail.id));
   document.addEventListener('click', event => {
-    const caseButton = event.target instanceof Element ? event.target.closest('#work [data-project]') : null;
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+    const caseButton = target.closest('#work [data-project]');
     if (caseButton) {
       discover(caseButton.dataset.project);
       unlock('archive');
     }
-    if (event.target instanceof Element && event.target.closest('a[href^="mailto:"], .copy-email')) unlock('contact');
+    const link = target.closest('a[href]');
+    if (link && /^https:\/\/github\.com\/kzhigalov-dev\/[^?#/]+/.test(link.href)) unlock('source');
+    if (target.closest('a[href^="mailto:"], .copy-email')) unlock('contact');
   });
+
+  // The profile counts as read once most of it has stayed on screen for a moment.
+  const aboutCopy = document.querySelector('.about-copy');
+  if (aboutCopy && 'IntersectionObserver' in window) {
+    let readTimer = 0;
+    const observer = new IntersectionObserver(([entry]) => {
+      clearTimeout(readTimer);
+      if (entry.isIntersecting) readTimer = setTimeout(() => { unlock('about'); observer.disconnect(); }, 1500);
+    }, { threshold: 0.55 });
+    observer.observe(aboutCopy);
+  }
 
   const konami = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
   let konamiStep = 0;
@@ -265,20 +326,20 @@
       konamiStep = 0;
       document.documentElement.classList.add('is-comet');
       document.dispatchEvent(new CustomEvent('portfolio:comet'));
-      if (state.achievements.has('secret')) toast('☄', 'Режим кометы', 'Ровер снова оставляет радужный след');
-      else unlock('secret');
+      if (!unlock('secret')) toast('☄', 'Режим кометы', 'Ровер снова оставляет радужный след');
     }
   }, true);
 
   window.portfolioGame = {
-    signalTotal: SIGNAL_TOTAL,
+    skills,
+    skillTotal: SKILL_TOTAL,
+    trackLabel: id => trackOf(id)?.label || '',
     hasStation: id => state.stations.has(id),
-    hasSignal: index => state.signals.has(index),
-    collectSignal,
-    addDistance,
+    hasSkill: index => state.skills.has(index),
+    collectSkill,
     unlock,
     openJournal,
-    signalCount: () => state.signals.size
+    skillCount: () => state.skills.size
   };
   render();
 })();

@@ -660,3 +660,18 @@ dialog.journal{width:min(840px,calc(100% - 32px));background:#101a34;color:#eef2
 @media(min-width:761px) and (max-width:1100px){.header{gap:20px}.header nav{gap:22px}.header nav a,.logo-name small{white-space:nowrap}.header-cta{padding-inline:14px}}
 @keyframes toast-rise{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
 @media(min-width:761px) and (pointer:fine){.game-toasts{top:auto;bottom:24px}.game-toast{animation-name:toast-rise}.game-toast.is-leaving{animation-name:toast-out}}
+/* Layout fixes and the portfolio-facing parts of the expedition. */
+@media(max-width:389px){.experience-kicker,.experience:not(.is-active) #experience-status{display:none}}
+@media(min-width:761px){.fraud-feature .round-link{margin-top:28px}}
+#toolbox-found{display:block;color:#ffb48f;letter-spacing:.6px}
+#toolbox-found[hidden]{display:none}
+.toolbox>div>span{transition:border-color .5s,background .5s,color .5s,box-shadow .5s}
+.toolbox>div>span.is-found{border-color:#f6774f;background:#f6774f1c;color:#fff;box-shadow:0 0 0 3px #f6774f14}
+.journal .journal-summary{margin:18px 0 0;padding:14px 16px;border-left:3px solid #f6774f;background:#ffffff0a;font-size:14px;line-height:1.65;color:#eef2ff}
+.journal-skills{display:flex;flex-wrap:wrap;gap:7px;margin:0;padding:0;list-style:none}
+.journal-skills li{padding:7px 10px;border:1px dashed #8fa0c8;border-radius:3px;font-size:12px;color:#a9b9df}
+.journal-skills li.is-done{border-style:solid;border-color:#f6774f;background:#f6774f1f;color:#fff}
+.journal-cta{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
+.journal-cta strong{font-size:15px;color:#fff}
+.journal-cta .button{min-height:44px;padding:12px 18px}
+.world-hud strong span,.journal-stats strong span{font:inherit;letter-spacing:inherit;text-transform:none;color:inherit}
