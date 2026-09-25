@@ -330,32 +330,80 @@ if (renderer) {
     points.push({ info, group, sculpture, ring, halo, path, route, pulse, pulseGlow, label, index });
   });
 
-  // The rover is made from simple geometry; it is not a copied vehicle model.
+  // The rover is an original, low-poly field vehicle built from local geometry.
   const rover = new THREE.Group();
   scene.add(rover);
+  rover.scale.setScalar(1.22);
   const roverBody = new THREE.Group();
   rover.add(roverBody);
-  box(roverBody, 1.1, 0.26, 1.62, 0, 0.43, 0, orange);
-  box(roverBody, 0.83, 0.45, 0.75, 0, 0.74, 0.12, cream);
-  box(roverBody, 0.72, 0.15, 0.48, 0, 0.57, -0.58, cobalt);
-  const glass = material(0x172d53, { metalness: 0.55, roughness: 0.15 });
-  box(roverBody, 0.68, 0.08, 0.44, 0, 0.99, 0.1, glass);
-  for (const x of [-0.37, 0.37]) {
-    box(roverBody, 0.19, 0.08, 0.08, x, 0.49, -0.84, cream);
-    box(roverBody, 0.18, 0.08, 0.08, x, 0.49, 0.84, orange);
+  const glass = material(0x223c60, { metalness: 0.36, roughness: 0.22 });
+  const tireRubber = material(0x111b2e, { roughness: 0.92, metalness: 0.04 });
+  const steel = material(0x8ea6be, { roughness: 0.38, metalness: 0.64 });
+  const light = material(0xfff0cc, { emissive: 0xffd899, emissiveIntensity: 1.5 });
+  const tailLight = material(0xff735c, { emissive: 0xff503d, emissiveIntensity: 1.3 });
+  function roverPrism(profile, width, mat) {
+    const vertices = [];
+    const triangle = (a, b, c) => vertices.push(...a, ...b, ...c, ...c, ...b, ...a);
+    const point = (index, x) => [x, profile[index][1], profile[index][0]];
+    for (let index = 1; index < profile.length - 1; index++) {
+      triangle(point(0, -width / 2), point(index, -width / 2), point(index + 1, -width / 2));
+      triangle(point(0, width / 2), point(index + 1, width / 2), point(index, width / 2));
+    }
+    for (let index = 0; index < profile.length; index++) {
+      const next = (index + 1) % profile.length;
+      triangle(point(index, -width / 2), point(next, -width / 2), point(next, width / 2));
+      triangle(point(index, -width / 2), point(next, width / 2), point(index, width / 2));
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.computeVertexNormals();
+    const mesh = new THREE.Mesh(geometry, mat);
+    roverBody.add(mesh);
+    return mesh;
   }
-  box(roverBody, 0.13, 0.17, 0.13, 0, 1.1, 0.14, graphite);
-  const scanner = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.028, 6, 24), cobalt);
+  box(roverBody, 1.16, 0.2, 1.72, 0, 0.43, 0, graphite);
+  roverPrism([[-0.93, 0.39], [-0.88, 0.56], [-0.53, 0.69], [-0.19, 0.59], [0.72, 0.59], [0.91, 0.47], [0.91, 0.38]], 1.15, orange);
+  roverPrism([[-0.38, 0.59], [-0.14, 1.05], [0.42, 1.05], [0.70, 0.59]], 0.83, cream);
+  roverPrism([[-0.30, 0.67], [-0.10, 0.98], [0.37, 0.98], [0.55, 0.67]], 0.73, glass);
+  box(roverBody, 0.67, 0.025, 0.31, 0, 0.85, -0.18, glass).rotation.x = -0.8;
+  box(roverBody, 0.67, 0.025, 0.31, 0, 0.84, 0.48, glass).rotation.x = 0.8;
+  box(roverBody, 0.76, 0.045, 0.65, 0, 1.065, 0.13, cream);
+  box(roverBody, 0.69, 0.04, 0.16, 0, 0.70, -0.72, cobalt);
+  box(roverBody, 1.21, 0.09, 0.12, 0, 0.34, -0.91, steel);
+  box(roverBody, 1.21, 0.09, 0.12, 0, 0.34, 0.91, steel);
+  for (const x of [-0.43, 0.43]) {
+    box(roverBody, 0.16, 0.08, 0.08, x, 0.58, -0.9, light);
+    box(roverBody, 0.17, 0.07, 0.08, x, 0.56, 0.89, tailLight);
+    box(roverBody, 0.11, 0.045, 0.46, x, 0.62, -0.58, cream);
+  }
+  box(roverBody, 0.12, 0.18, 0.12, 0, 1.17, 0.24, graphite);
+  const scanner = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.028, 6, 24), cobalt);
   scanner.rotation.x = Math.PI / 2;
-  scanner.position.set(0, 1.21, 0.14);
+  scanner.position.set(0, 1.29, 0.24);
   roverBody.add(scanner);
+  const scannerCore = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 8), light);
+  scannerCore.position.set(0, 1.3, 0.24);
+  roverBody.add(scannerCore);
   const wheels = [];
-  for (const x of [-0.63, 0.63]) for (const z of [-0.51, 0.51]) {
-    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.16, 12), graphite);
-    wheel.rotation.z = Math.PI / 2;
-    wheel.position.set(x, 0.27, z);
-    rover.add(wheel);
-    wheels.push({ mesh: wheel, front: z < 0 });
+  for (const x of [-0.63, 0.63]) for (const z of [-0.61, 0.61]) {
+    const pivot = new THREE.Group();
+    pivot.position.set(x, 0.28, z);
+    rover.add(pivot);
+    const spin = new THREE.Group();
+    pivot.add(spin);
+    const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.29, 0.29, 0.2, 16), tireRubber);
+    tire.rotation.z = Math.PI / 2;
+    spin.add(tire);
+    const side = Math.sign(x);
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.155, 0.155, 0.212, 12), steel);
+    rim.rotation.z = Math.PI / 2;
+    rim.position.x = side * 0.006;
+    spin.add(rim);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.222, 12), cobalt);
+    hub.rotation.z = Math.PI / 2;
+    hub.position.x = side * 0.012;
+    spin.add(hub);
+    wheels.push({ pivot, spin, front: z < 0 });
   }
   const roverShadow = new THREE.Mesh(new THREE.CircleGeometry(1.03, 32), new THREE.MeshBasicMaterial({ color: 0x050c22, transparent: true, opacity: 0.45, depthWrite: false }));
   roverShadow.rotation.x = -Math.PI / 2;
@@ -369,14 +417,15 @@ if (renderer) {
   underglow.position.y = 0.015;
   rover.add(underglow);
   const headlamp = new THREE.PointLight(0xf6ddbb, 5, 5);
-  headlamp.position.set(0, 0.6, -0.8);
+  headlamp.position.set(0, 0.61, -0.94);
   rover.add(headlamp);
 
-  const state = { forward: false, backward: false, left: false, right: false, boost: false };
+  const state = { forward: false, backward: false, left: false, right: false, boost: false, brake: false };
   let active = false;
   let visible = true;
   let heading = 0;
   let speed = 0;
+  let steerAngle = 0;
   let nearId = null;
   let hoveredId = null;
   let selectedId = null;
@@ -421,8 +470,16 @@ if (renderer) {
     if (distance < 3.3) selectStation(station.id, 'rover');
     else setStatus('Подъезжайте ближе к станции или выберите проект на карте.');
   }
+  function resetRover() {
+    rover.position.set(0, 0, 0);
+    heading = 0;
+    speed = 0;
+    steerAngle = 0;
+    Object.keys(state).forEach(key => { state[key] = false; });
+    setStatus('Ровер вернулся на старт. Выберите направление и исследуйте станции.');
+  }
 
-  const controls = { KeyW: 'forward', ArrowUp: 'forward', KeyS: 'backward', ArrowDown: 'backward', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right', ShiftLeft: 'boost', ShiftRight: 'boost' };
+  const controls = { KeyW: 'forward', ArrowUp: 'forward', KeyS: 'backward', ArrowDown: 'backward', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right', ShiftLeft: 'boost', ShiftRight: 'boost', Space: 'brake' };
   window.addEventListener('keydown', event => {
     if (!active || !visible || document.querySelector('#project-dialog')?.open) return;
     if (selectedId) return;
@@ -437,6 +494,7 @@ if (renderer) {
     }
     if (event.target.closest?.('button, a, summary, input, textarea, select')) return;
     if (event.code === 'Enter') { event.preventDefault(); interact(); return; }
+    if (event.code === 'KeyR') { event.preventDefault(); resetRover(); return; }
     const action = controls[event.code];
     if (action) { event.preventDefault(); state[action] = true; }
   });
@@ -445,6 +503,7 @@ if (renderer) {
   document.querySelectorAll('[data-drive]').forEach(button => {
     const action = button.dataset.drive;
     if (action === 'interact') { button.addEventListener('click', interact); return; }
+    if (action === 'reset') { button.addEventListener('click', resetRover); return; }
     const release = () => { state[action] = false; button.classList.remove('is-pressed'); };
     button.addEventListener('pointerdown', event => { event.preventDefault(); activate(); button.setPointerCapture(event.pointerId); state[action] = true; button.classList.add('is-pressed'); });
     button.addEventListener('pointerup', release);
@@ -504,11 +563,15 @@ if (renderer) {
     last = now;
     const throttle = Number(state.forward) - Number(state.backward);
     const steering = Number(state.right) - Number(state.left);
-    if (throttle) speed += throttle * (state.boost ? 12 : 7) * dt;
-    speed *= Math.exp(-(throttle ? 2.05 : 6.5) * dt);
-    speed = THREE.MathUtils.clamp(speed, state.boost ? -8 : -5, state.boost ? 12 : 7);
-    heading += steering * (1.75 + Math.abs(speed) * 0.11) * dt * (speed < -0.12 ? -1 : 1);
-    rover.rotation.y = heading;
+    const targetSpeed = state.brake ? 0 : throttle > 0 ? (state.boost ? 8.5 : 5.4) : throttle < 0 ? -3.6 : 0;
+    const acceleration = state.brake ? 17 : throttle ? (Math.sign(targetSpeed) === Math.sign(speed) ? (state.boost ? 10 : 7.6) : 13) : 5.7;
+    const speedDelta = THREE.MathUtils.clamp(targetSpeed - speed, -acceleration * dt, acceleration * dt);
+    speed += speedDelta;
+    if (Math.abs(speed) < 0.01) speed = 0;
+    steerAngle = THREE.MathUtils.lerp(steerAngle, steering, 1 - Math.exp(-9 * dt));
+    const turning = (0.28 + Math.min(Math.abs(speed) / 3, 1) * 1.2) * (speed < -0.1 ? -1 : 1);
+    heading += steerAngle * turning * dt;
+    rover.rotation.y = -heading;
     rover.position.x += Math.sin(heading) * speed * dt;
     rover.position.z -= Math.cos(heading) * speed * dt;
     if (Math.hypot(rover.position.x, rover.position.z) > 10.1) {
@@ -517,16 +580,17 @@ if (renderer) {
       rover.position.z = Math.sin(angle) * 10.1;
       speed *= -0.28;
     }
-    wheels.forEach(({ mesh, front }) => {
-      mesh.rotation.x -= speed * dt * 2.6;
-      if (front) mesh.rotation.y = THREE.MathUtils.lerp(mesh.rotation.y, steering * 0.18, 1 - Math.exp(-9 * dt));
+    wheels.forEach(({ pivot, spin, front }) => {
+      spin.rotation.x -= speed * dt / 0.29;
+      if (front) pivot.rotation.y = steerAngle * 0.27;
     });
     const t = now / 1000;
     if (!motion.matches) {
-      roverBody.rotation.z = THREE.MathUtils.lerp(roverBody.rotation.z, -steering * Math.min(Math.abs(speed) / 7, 1) * 0.055, 1 - Math.exp(-7 * dt));
-      roverBody.rotation.x = THREE.MathUtils.lerp(roverBody.rotation.x, throttle * 0.022, 1 - Math.exp(-6 * dt));
+      roverBody.rotation.z = THREE.MathUtils.lerp(roverBody.rotation.z, -steerAngle * Math.min(Math.abs(speed) / 7, 1) * 0.065, 1 - Math.exp(-7 * dt));
+      roverBody.rotation.x = THREE.MathUtils.lerp(roverBody.rotation.x, -speedDelta * 0.03, 1 - Math.exp(-6 * dt));
       roverBody.position.y = Math.sin(t * 14) * Math.min(Math.abs(speed) * 0.002, 0.022);
       underglow.material.opacity = 0.08 + Math.min(Math.abs(speed) * 0.013, 0.13);
+      scanner.rotation.z = Math.sin(t * 2.4) * 0.15;
     }
     const nearest = nearestStation();
     const nextNear = nearest.distance < 3.3 ? nearest.station.id : null;
@@ -566,8 +630,12 @@ if (renderer) {
     const cameraOffsetX = compact || active ? 0 : middle ? -3.5 : -6;
     const selectedStation = selectedId ? stations.find(station => station.id === selectedId) : null;
     const focusOffsetX = mobile ? 0 : compact ? -2.4 : middle ? -3.3 : -3.6;
+    const followDistance = mobile ? 16 : compact ? 13.5 : 10;
+    const followHeight = mobile ? 12.5 : compact ? 10 : 7.5;
     const desiredPosition = selectedStation
       ? new THREE.Vector3(selectedStation.x + focusOffsetX, mobile ? 9.5 : compact ? 10.5 : 8.5, selectedStation.z + (mobile ? 13.5 : 13))
+      : active
+        ? new THREE.Vector3(rover.position.x - Math.sin(heading) * followDistance, followHeight, rover.position.z + Math.cos(heading) * followDistance)
       : new THREE.Vector3(
         rover.position.x * (compact ? 0.55 : 0.45) + cameraOffsetX,
         mobile ? (active ? 19 : 27) : compact ? (active ? 18 : 24) : middle ? (active ? 17 : 20) : (active ? 15 : 16),
@@ -575,8 +643,10 @@ if (renderer) {
       );
     const desiredTarget = selectedStation
       ? new THREE.Vector3(selectedStation.x + focusOffsetX, mobile ? -0.25 : 0.9, selectedStation.z)
+      : active
+        ? new THREE.Vector3(rover.position.x + Math.sin(heading) * 2.2, 0.4, rover.position.z - Math.cos(heading) * 2.2)
       : new THREE.Vector3(rover.position.x * 0.25 + cameraOffsetX, mobile && active ? -1.8 : compact ? -0.8 : 0, rover.position.z * 0.25);
-    const cameraEase = motion.matches ? 1 : 1 - Math.exp(-(selectedStation ? 4 : 2.6) * dt);
+    const cameraEase = motion.matches ? 1 : 1 - Math.exp(-(selectedStation ? 4 : active ? 3.8 : 2.6) * dt);
     camera.position.lerp(desiredPosition, cameraEase);
     cameraTarget.lerp(desiredTarget, cameraEase);
     camera.lookAt(cameraTarget);
