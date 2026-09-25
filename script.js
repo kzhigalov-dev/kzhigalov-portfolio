@@ -272,16 +272,17 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
   document.querySelectorAll('main > section').forEach(section => observer.observe(section));
 })();
 
-// A small data probe belongs to the 3D map and its controls. Text and dialogs
-// retain the system cursor, and the effect never runs on touch or reduced motion.
+// A small orbital probe follows the page's star-map language. Dialogs, touch
+// input, and reduced-motion settings retain the system cursor.
 (() => {
   const cursor = document.querySelector('#signal-cursor');
-  const scene = document.querySelector('#experience');
   const capability = window.matchMedia('(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference)');
+  const caption = cursor.querySelector('.signal-cursor-label').firstChild;
   let stationId = null;
   let overWorld = false;
   let visible = false;
   let frame = 0;
+  let scrollFrame = 0;
   let pulseTimer = 0;
   let x = -100;
   let y = -100;
@@ -290,7 +291,7 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
     visible = false;
     overWorld = false;
     document.documentElement.classList.remove('signal-cursor-ready');
-    cursor.classList.remove('is-visible', 'is-action', 'is-light-action', 'is-station', 'is-flipped', 'is-pressed');
+    cursor.classList.remove('is-visible', 'is-action', 'is-light-action', 'is-station', 'is-flipped', 'is-raised', 'is-pressed');
   }
 
   function placeCursor() {
@@ -299,26 +300,31 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
   }
 
   function moveCursor(event) {
-    if (!capability.matches || event.pointerType === 'touch' || dialog.open || scene.classList.contains('experience--fallback')) {
+    if (!capability.matches || event.pointerType === 'touch' || dialog.open) {
       hideCursor();
       return;
     }
     const target = event.target instanceof Element ? event.target : null;
+    if (!target || target.closest('input,textarea,select,[contenteditable="true"]')) { hideCursor(); return; }
     const world = !!target?.closest('#experience-viewport');
-    const action = !!target?.closest('.experience a,.experience button,.experience summary');
-    if (!world && !action) {
-      hideCursor();
-      return;
-    }
+    const actionTarget = target.closest('a,button,summary,[data-project]');
+    const action = !!actionTarget;
+    const light = !!target.closest('.header,.contact,.footer,.ranker-feature,.work>.work-inner>.featured:first-of-type,.experience-map[open],.world-exhibit');
     overWorld = world;
     visible = true;
     x = event.clientX;
     y = event.clientY;
     cursor.classList.add('is-visible');
     cursor.classList.toggle('is-action', action);
-    cursor.classList.toggle('is-light-action', action && !!target.closest('.world-exhibit,.experience-map[open]') && !target.closest('#world-exhibit-open'));
+    cursor.classList.toggle('is-light-action', light);
     cursor.classList.toggle('is-station', world && !!stationId);
     cursor.classList.toggle('is-flipped', x > window.innerWidth - 140);
+    cursor.classList.toggle('is-raised', y > window.innerHeight - 35);
+    if (world && stationId) caption.textContent = 'ИЗУЧИТЬ ';
+    else if (actionTarget?.closest('[data-project]')) caption.textContent = 'ПРОЕКТ ';
+    else if (actionTarget?.matches('a[href^="mailto:"]')) caption.textContent = 'НАПИСАТЬ ';
+    else if (actionTarget?.matches('a[href^="#"]')) caption.textContent = 'ПЕРЕЙТИ ';
+    else caption.textContent = 'ОТКРЫТЬ ';
     document.documentElement.classList.add('signal-cursor-ready');
     if (!frame) frame = requestAnimationFrame(placeCursor);
   }
@@ -340,7 +346,15 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
   });
   document.addEventListener('click', () => { if (dialog.open) hideCursor(); });
   document.addEventListener('keydown', hideCursor, true);
-  document.addEventListener('scroll', hideCursor, { passive: true });
+  document.addEventListener('scroll', () => {
+    if (!visible || scrollFrame) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      const target = document.elementFromPoint(x, y);
+      if (target) moveCursor({ target, clientX: x, clientY: y, pointerType: 'mouse' });
+      else hideCursor();
+    });
+  }, { passive: true });
   document.addEventListener('visibilitychange', () => { if (document.hidden) hideCursor(); });
   window.addEventListener('blur', hideCursor);
   capability.addEventListener('change', hideCursor);
