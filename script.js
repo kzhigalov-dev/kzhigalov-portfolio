@@ -131,12 +131,21 @@ const worldExhibit = document.querySelector('#world-exhibit');
 const worldExhibitTitle = document.querySelector('#world-exhibit-title');
 let selectedWorldProject = null;
 let worldReturnFocus = null;
+let worldExhibitTimer = 0;
 
 function showWorldExhibit(id, source = 'canvas') {
   const project = projects[id];
   const facts = worldFacts[id];
   if (!project || !facts) return;
+  clearTimeout(worldExhibitTimer);
+  worldExhibit.classList.remove('is-leaving');
   const wasHidden = worldExhibit.hidden;
+  if (!wasHidden && selectedWorldProject !== id) {
+    // Switching stations replays a short content transition inside the panel.
+    worldExhibit.classList.remove('is-swapping');
+    void worldExhibit.offsetWidth;
+    worldExhibit.classList.add('is-swapping');
+  }
   if (wasHidden) worldReturnFocus = source === 'map' ? document.querySelector('.experience-map summary') : document.querySelector('#experience-viewport');
   selectedWorldProject = id;
   document.querySelector('#world-exhibit-index').textContent = `${String(worldOrder.indexOf(id) + 1).padStart(2, '0')} / 07`;
@@ -154,8 +163,13 @@ function showWorldExhibit(id, source = 'canvas') {
 }
 
 function closeWorldExhibit() {
-  if (worldExhibit.hidden) return;
-  worldExhibit.hidden = true;
+  if (worldExhibit.hidden || worldExhibit.classList.contains('is-leaving')) return;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  worldExhibit.classList.add('is-leaving');
+  worldExhibitTimer = setTimeout(() => {
+    worldExhibit.hidden = true;
+    worldExhibit.classList.remove('is-leaving', 'is-swapping');
+  }, reduced ? 0 : 260);
   worldSection.classList.remove('is-showcase');
   selectedWorldProject = null;
   window.portfolioWorld?.clearFocus();
@@ -244,17 +258,43 @@ document.querySelector('.copy-email').addEventListener('click', async event => {
   }
 });
 document.querySelector('#year').textContent = new Date().getFullYear();
+// Sections surface as the visitor reaches them. Elements that enter together
+// arrive in a short cascade; constellations are drawn in from left to right.
 if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const targets = document.querySelectorAll('.archive-route, .section-heading, .project, .more-heading, .engineering-note, .all-repos, .about-route, .about-title, .about-copy, .toolbox, .contact h2, .contact > p:not(.copy-status), .contact-actions, .sky-chart');
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('reveal');
-        observer.unobserve(entry.target);
-      }
+    entries.filter(entry => entry.isIntersecting).forEach((entry, order) => {
+      const element = entry.target;
+      observer.unobserve(element);
+      element.style.setProperty('--reveal-delay', `${Math.min(order, 4) * 90}ms`);
+      element.classList.add('reveal');
+      // Hand the element back to its own hover and press transitions.
+      setTimeout(() => {
+        element.removeAttribute('data-reveal');
+        element.style.removeProperty('--reveal-delay');
+      }, element.matches('.sky-chart') ? 2400 : 1500);
     });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.project, .about-copy').forEach(element => observer.observe(element));
+  }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+  targets.forEach(element => {
+    element.setAttribute('data-reveal', '');
+    observer.observe(element);
+  });
+  document.documentElement.classList.add('reveal-ready');
 }
+
+// A thin route line in the page edge shows how far the visitor has travelled.
+(() => {
+  const line = document.querySelector('.route-progress span');
+  let frame = 0;
+  const update = () => {
+    frame = 0;
+    const range = document.documentElement.scrollHeight - window.innerHeight;
+    line.style.transform = `scaleX(${range > 0 ? Math.min(window.scrollY / range, 1) : 0})`;
+  };
+  window.addEventListener('scroll', () => { if (!frame) frame = requestAnimationFrame(update); }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
 
 // Indicate the current section without polling scroll position.
 (() => {
@@ -300,7 +340,7 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
   }
 
   function moveCursor(event) {
-    if (!capability.matches || event.pointerType === 'touch' || dialog.open) {
+    if (!capability.matches || event.pointerType === 'touch' || document.querySelector('dialog[open]')) {
       hideCursor();
       return;
     }
@@ -344,7 +384,7 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
     clearTimeout(pulseTimer);
     pulseTimer = setTimeout(() => cursor.classList.remove('is-pressed'), 390);
   });
-  document.addEventListener('click', () => { if (dialog.open) hideCursor(); });
+  document.addEventListener('click', () => { if (document.querySelector('dialog[open]')) hideCursor(); });
   document.addEventListener('keydown', hideCursor, true);
   document.addEventListener('scroll', () => {
     if (!visible || scrollFrame) return;

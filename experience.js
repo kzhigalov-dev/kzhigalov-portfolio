@@ -9,6 +9,7 @@ const viewport = document.querySelector('#experience-viewport');
 const status = document.querySelector('#experience-status');
 const startButton = document.querySelector('#experience-start');
 const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const game = window.portfolioGame;
 const stations = [
   { id: 'ranker', name: 'Job Ranker', color: 0x9eb8ff, kind: 'rank', x: 0, z: -7 },
   { id: 'retail', name: 'Retail Planner', color: 0x9be7c3, kind: 'retail', x: -6.5, z: -3.5 },
@@ -176,24 +177,42 @@ if (renderer) {
     canvas.width = 600;
     canvas.height = 130;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'rgba(25,39,69,.96)';
-    ctx.beginPath();
-    ctx.roundRect(8, 8, 584, 112, 15);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(196,212,249,.78)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
-    ctx.fillRect(9, 9, 13, 111);
-    ctx.fillStyle = '#f7f8fc';
-    ctx.font = '700 52px Manrope, Arial, sans-serif';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(name, 45, 68, 520);
+    const hex = `#${color.toString(16).padStart(6, '0')}`;
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
+    // An explored station keeps its name and gains a check mark in its color.
+    const draw = done => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(25,39,69,.96)';
+      ctx.beginPath();
+      ctx.roundRect(8, 8, 584, 112, 15);
+      ctx.fill();
+      ctx.strokeStyle = done ? hex : 'rgba(196,212,249,.78)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = hex;
+      ctx.fillRect(9, 9, 13, 111);
+      ctx.fillStyle = '#f7f8fc';
+      ctx.font = '700 52px Manrope, Arial, sans-serif';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(name, 45, 68, done ? 450 : 520);
+      if (done) {
+        ctx.strokeStyle = hex;
+        ctx.lineWidth = 9;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(528, 66);
+        ctx.lineTo(546, 84);
+        ctx.lineTo(575, 46);
+        ctx.stroke();
+      }
+      texture.needsUpdate = true;
+    };
+    draw(false);
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
     sprite.scale.set(4.2, 0.9, 1);
     sprite.position.y = 3.05;
+    sprite.userData.draw = draw;
     return sprite;
   }
 
@@ -327,8 +346,70 @@ if (renderer) {
     const pulseGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, color: info.color, transparent: true, opacity: 0.62, depthWrite: false }));
     pulseGlow.scale.set(0.62, 0.62, 1);
     scene.add(pulseGlow);
-    points.push({ info, group, sculpture, ring, halo, path, route, pulse, pulseGlow, label, index });
+    // Explored stations raise a light beacon that is visible from across the map.
+    const beacon = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.34, 7, 18, 1, true),
+      new THREE.MeshBasicMaterial({ color: info.color, transparent: true, opacity: 0, depthWrite: false, blending: 2, side: THREE.DoubleSide })
+    );
+    beacon.scale.y = 0.001;
+    beacon.visible = false;
+    group.add(beacon);
+    const done = !!game?.hasStation(info.id);
+    if (done) label.userData.draw(true);
+    points.push({ info, group, sculpture, ring, halo, path, route, pulse, pulseGlow, label, beacon, done, index });
   });
+
+  // Data signals are optional finds on the roads between stations.
+  const signalMaterial = material(0xfff1dc, { emissive: 0xffb48f, emissiveIntensity: 0.85, roughness: 0.2 });
+  const signalGeometry = new THREE.OctahedronGeometry(0.2, 0);
+  const signals = [
+    ...[-90, -30, 30, 90, 150, 210].map(angle => [3.8, angle]),
+    ...[0, 42, 90, 138, 182, -121].map(angle => [9.3, angle])
+  ].map(([radius, degrees], index) => {
+    const angle = degrees * Math.PI / 180;
+    const group = new THREE.Group();
+    group.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+    scene.add(group);
+    const gem = new THREE.Mesh(signalGeometry, signalMaterial);
+    gem.scale.set(1, 1.55, 1);
+    gem.position.y = 0.78;
+    group.add(gem);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, color: 0xffb48f, transparent: true, opacity: 0.55, depthWrite: false, blending: 2 }));
+    glow.scale.setScalar(1.15);
+    glow.position.y = 0.78;
+    group.add(glow);
+    const base = new THREE.Mesh(
+      new THREE.RingGeometry(0.3, 0.36, 28),
+      new THREE.MeshBasicMaterial({ color: 0xffc6a4, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide })
+    );
+    base.rotation.x = -Math.PI / 2;
+    base.position.y = -0.01;
+    group.add(base);
+    const collected = !!game?.hasSignal(index);
+    group.visible = !collected;
+    return { index, group, gem, glow, base, collected, burstAt: 0 };
+  });
+
+  function syncProgress() {
+    points.forEach(point => {
+      const done = !!game?.hasStation(point.info.id);
+      if (done !== point.done) {
+        point.done = done;
+        point.label.userData.draw(done);
+      }
+    });
+    signals.forEach(signal => {
+      const collected = !!game?.hasSignal(signal.index);
+      if (collected === signal.collected) return;
+      signal.collected = collected;
+      signal.burstAt = 0;
+      signal.group.visible = !collected;
+      signal.group.scale.setScalar(1);
+      signal.gem.scale.set(1, 1.55, 1);
+      signal.glow.material.opacity = 0.55;
+    });
+  }
+  document.addEventListener('portfolio:progress', syncProgress);
 
   // The rover is an original, low-poly field vehicle built from local geometry.
   const rover = new THREE.Group();
@@ -420,6 +501,96 @@ if (renderer) {
   headlamp.position.set(0, 0.61, -0.94);
   rover.add(headlamp);
 
+  // Boost leaves a short ion trail; the comet mode keeps it on in all colors.
+  const trail = Array.from({ length: 42 }, () => {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, color: 0xf6774f, transparent: true, opacity: 0, depthWrite: false, blending: 2 }));
+    sprite.visible = false;
+    scene.add(sprite);
+    return { sprite, life: 0 };
+  });
+  let trailCursor = 0;
+  let trailClock = 0;
+  let comet = false;
+  document.addEventListener('portfolio:comet', () => { comet = true; });
+
+  const hudSpeed = document.querySelector('#hud-speed');
+  const hudSpeedBar = document.querySelector('#hud-speed-bar');
+  const radar = document.querySelector('#world-radar');
+  const radarContext = radar.getContext('2d');
+  const stationColors = Object.fromEntries(stations.map(station => [station.id, `#${station.color.toString(16).padStart(6, '0')}`]));
+  let shownSpeed = -1;
+  let travelled = 0;
+  let travelClock = 0;
+  let topSpeed = 0;
+
+  function drawRadar(t) {
+    const size = radar.clientWidth;
+    if (!size) return;
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const pixels = Math.round(size * ratio);
+    if (radar.width !== pixels) radar.width = radar.height = pixels;
+    const ctx = radarContext;
+    const center = size / 2;
+    const scale = (center - 9) / 10.6;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = 'rgba(16,26,52,.84)';
+    ctx.beginPath();
+    ctx.arc(center, center, center - 1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(191,208,255,.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(191,208,255,.16)';
+    for (const fraction of [0.36, 0.72]) {
+      ctx.beginPath();
+      ctx.arc(center, center, (center - 9) * fraction, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    if (!motion.matches) {
+      const sweep = t * 1.7;
+      const gradient = ctx.createConicGradient?.(sweep - 0.9, center, center);
+      if (gradient) {
+        gradient.addColorStop(0, 'rgba(246,119,79,0)');
+        gradient.addColorStop(0.14, 'rgba(246,119,79,.22)');
+        gradient.addColorStop(0.15, 'rgba(246,119,79,0)');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(center, center, center - 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.fillStyle = '#ffd6bf';
+    signals.forEach(signal => {
+      if (signal.collected) return;
+      const { x, z } = signal.group.position;
+      ctx.fillRect(center + x * scale - 1.5, center + z * scale - 1.5, 3, 3);
+    });
+    points.forEach(({ info, done }) => {
+      ctx.beginPath();
+      ctx.arc(center + info.x * scale, center + info.z * scale, done ? 4.5 : 4, 0, Math.PI * 2);
+      ctx.strokeStyle = stationColors[info.id];
+      ctx.fillStyle = stationColors[info.id];
+      ctx.lineWidth = 1.5;
+      if (done) ctx.fill();
+      else ctx.stroke();
+    });
+    ctx.save();
+    ctx.translate(center + rover.position.x * scale, center + rover.position.z * scale);
+    ctx.rotate(heading);
+    ctx.fillStyle = '#f6774f';
+    ctx.strokeStyle = '#101a34';
+    ctx.beginPath();
+    ctx.moveTo(0, -7);
+    ctx.lineTo(5, 5);
+    ctx.lineTo(0, 2.5);
+    ctx.lineTo(-5, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
   const state = { forward: false, backward: false, left: false, right: false, boost: false, brake: false };
   let active = false;
   let visible = true;
@@ -447,14 +618,30 @@ if (renderer) {
     clearFocus() { selectedId = null; }
   };
 
+  // The hero copy morphs into the compact driving HUD instead of jumping.
+  let modeTransition = null;
+  function setWorldMode(on) {
+    const update = () => {
+      active = on;
+      section.classList.toggle('is-active', on);
+    };
+    // The start button and the viewport focus both request the same mode; run one transition.
+    if (modeTransition?.target === on) return;
+    if (section.classList.contains('is-active') === on && !modeTransition) { update(); return; }
+    if (on) game?.unlock('launch');
+    if (motion.matches || !document.startViewTransition || !visible) { update(); return; }
+    const transition = document.startViewTransition(update);
+    modeTransition = { target: on };
+    transition.ready.catch(() => {});
+    transition.finished.finally(() => { modeTransition = null; });
+  }
   function activate() {
-    active = true;
-    section.classList.add('is-active');
+    setWorldMode(true);
     viewport.focus({ preventScroll: true });
-    setStatus('Езжайте к светящимся станциям. Enter покажет досье проекта. Esc вернёт подсказку.');
+    setStatus('Езжайте к светящимся станциям и собирайте сигналы. Enter покажет досье проекта. Esc вернёт подсказку.');
   }
   startButton.addEventListener('click', activate);
-  viewport.addEventListener('focus', () => { active = true; section.classList.add('is-active'); });
+  viewport.addEventListener('focus', () => setWorldMode(true));
 
   function nearestStation() {
     let nearest = null;
@@ -481,11 +668,10 @@ if (renderer) {
 
   const controls = { KeyW: 'forward', ArrowUp: 'forward', KeyS: 'backward', ArrowDown: 'backward', KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right', ShiftLeft: 'boost', ShiftRight: 'boost', Space: 'brake' };
   window.addEventListener('keydown', event => {
-    if (!active || !visible || document.querySelector('#project-dialog')?.open) return;
+    if (!active || !visible || document.querySelector('dialog[open]')) return;
     if (selectedId) return;
     if (event.code === 'Escape') {
-      active = false;
-      section.classList.remove('is-active');
+      setWorldMode(false);
       document.querySelector('.experience-map').open = false;
       Object.keys(state).forEach(key => { state[key] = false; });
       setStatus('Режим исследования закрыт. Выберите проект на карте или откройте кейсы ниже.');
@@ -495,6 +681,7 @@ if (renderer) {
     if (event.target.closest?.('button, a, summary, input, textarea, select')) return;
     if (event.code === 'Enter') { event.preventDefault(); interact(); return; }
     if (event.code === 'KeyR') { event.preventDefault(); resetRover(); return; }
+    if (event.code === 'KeyJ') { event.preventDefault(); Object.keys(state).forEach(key => { state[key] = false; }); game?.openJournal(); return; }
     const action = controls[event.code];
     if (action) { event.preventDefault(); state[action] = true; }
   });
@@ -563,7 +750,8 @@ if (renderer) {
     last = now;
     const throttle = Number(state.forward) - Number(state.backward);
     const steering = Number(state.right) - Number(state.left);
-    const targetSpeed = state.brake ? 0 : throttle > 0 ? (state.boost ? 8.5 : 5.4) : throttle < 0 ? -3.6 : 0;
+    const boostSpeed = comet ? 10 : 8.5;
+    const targetSpeed = state.brake ? 0 : throttle > 0 ? (state.boost ? boostSpeed : 5.4) : throttle < 0 ? -3.6 : 0;
     const acceleration = state.brake ? 17 : throttle ? (Math.sign(targetSpeed) === Math.sign(speed) ? (state.boost ? 10 : 7.6) : 13) : 5.7;
     const speedDelta = THREE.MathUtils.clamp(targetSpeed - speed, -acceleration * dt, acceleration * dt);
     speed += speedDelta;
@@ -578,7 +766,28 @@ if (renderer) {
       const angle = Math.atan2(rover.position.z, rover.position.x);
       rover.position.x = Math.cos(angle) * 10.1;
       rover.position.z = Math.sin(angle) * 10.1;
+      if (Math.abs(speed) > 1) game?.unlock('edge');
       speed *= -0.28;
+    }
+    // Station platforms are solid: the rover slides around them instead of driving through.
+    for (const station of stations) {
+      const dx = rover.position.x - station.x;
+      const dz = rover.position.z - station.z;
+      const gap = Math.hypot(dx, dz);
+      if (gap < 2.2 && gap > 0.001) {
+        rover.position.x = station.x + dx / gap * 2.2;
+        rover.position.z = station.z + dz / gap * 2.2;
+        speed = Math.sign(speed) * Math.min(Math.abs(speed), 2.4);
+      }
+    }
+    if (speed > 8.3) game?.unlock('boost');
+    travelled += Math.abs(speed) * dt;
+    topSpeed = Math.max(topSpeed, Math.abs(speed) * 12);
+    travelClock += dt;
+    if (travelClock > 1 && travelled > 0) {
+      game?.addDistance(travelled, topSpeed);
+      travelled = 0;
+      travelClock = 0;
     }
     wheels.forEach(({ pivot, spin, front }) => {
       spin.rotation.x -= speed * dt / 0.29;
@@ -624,6 +833,76 @@ if (renderer) {
       pulseGlow.material.opacity = selected ? signalOpacity * 0.86 : selectedId ? 0.08 : 0.62;
       pulseGlow.scale.setScalar(selected ? 1.05 : 0.62);
     });
+    points.forEach(({ beacon, done, index }) => {
+      const grow = motion.matches ? Number(done) : THREE.MathUtils.lerp(beacon.scale.y, done ? 1 : 0.001, 1 - Math.exp(-2.4 * dt));
+      beacon.visible = grow > 0.01;
+      beacon.scale.y = Math.max(grow, 0.001);
+      beacon.position.y = 0.4 + 3.5 * beacon.scale.y;
+      beacon.material.opacity = grow * (motion.matches ? 0.14 : 0.12 + Math.sin(t * 2.2 + index) * 0.03);
+    });
+
+    signals.forEach(signal => {
+      const { group, gem, glow, base } = signal;
+      if (signal.collected) {
+        if (!signal.burstAt) return;
+        const age = (now - signal.burstAt) / 480;
+        if (age >= 1 || motion.matches) { group.visible = false; signal.burstAt = 0; return; }
+        gem.scale.set(1 - age, (1 - age) * 1.55, 1 - age);
+        gem.position.y = 0.78 + age * 0.9;
+        glow.scale.setScalar(1.15 + age * 3.2);
+        glow.material.opacity = 0.9 * (1 - age);
+        base.scale.setScalar(1 + age * 3);
+        return;
+      }
+      if (!motion.matches) {
+        gem.rotation.y = t * 1.6 + signal.index;
+        gem.position.y = 0.78 + Math.sin(t * 2.4 + signal.index) * 0.09;
+        glow.position.y = gem.position.y;
+        glow.material.opacity = 0.5 + Math.sin(t * 3.1 + signal.index) * 0.12;
+      }
+      if (Math.hypot(rover.position.x - group.position.x, rover.position.z - group.position.z) < 1.1) {
+        signal.collected = true;
+        signal.burstAt = now;
+        game?.collectSignal(signal.index);
+        const count = game?.signalCount() ?? 0;
+        setStatus(count === signals.length ? `Все ${signals.length} сигналов данных собраны. Загляните в журнал: J.` : `Сигнал данных собран: ${count} из ${signals.length}.`);
+      }
+    });
+
+    trailClock += dt;
+    const trailOn = !motion.matches && Math.abs(speed) > 1.2 && (comet || (state.boost && speed > 5.8));
+    if (trailOn && trailClock > 0.028) {
+      trailClock = 0;
+      const particle = trail[trailCursor];
+      trailCursor = (trailCursor + 1) % trail.length;
+      particle.life = 1;
+      particle.sprite.visible = true;
+      particle.sprite.position.set(
+        rover.position.x - Math.sin(heading) * 1.15 + (Math.random() - 0.5) * 0.25,
+        0.38 + Math.random() * 0.12,
+        rover.position.z + Math.cos(heading) * 1.15 + (Math.random() - 0.5) * 0.25
+      );
+      if (comet) particle.sprite.material.color.setHSL((t * 0.45) % 1, 0.9, 0.62);
+      else particle.sprite.material.color.set(0xf6774f);
+    }
+    trail.forEach(particle => {
+      if (particle.life <= 0) return;
+      particle.life -= dt / 0.75;
+      if (particle.life <= 0) { particle.sprite.visible = false; return; }
+      particle.sprite.material.opacity = particle.life * 0.75;
+      particle.sprite.scale.setScalar(0.28 + (1 - particle.life) * 0.55);
+    });
+
+    if (active && !selectedId) {
+      const kmh = Math.round(Math.abs(speed) * 12);
+      if (kmh !== shownSpeed) {
+        shownSpeed = kmh;
+        hudSpeed.textContent = String(kmh);
+        hudSpeedBar.style.transform = `scaleX(${Math.min(Math.abs(speed) / 10, 1)})`;
+        hudSpeedBar.parentElement.classList.toggle('is-boosting', Math.abs(speed) > 6);
+      }
+      drawRadar(t);
+    }
     const mobile = viewport.clientWidth < 600;
     const compact = viewport.clientWidth < 900;
     const middle = viewport.clientWidth < 1101;
@@ -660,5 +939,7 @@ if (renderer) {
   const initialX = initialCompact ? 0 : initialMiddle ? -3.5 : -6;
   camera.position.set(initialX, initialWidth < 600 ? 27 : initialCompact ? 24 : initialMiddle ? 20 : 16, initialWidth < 600 ? 31 : initialCompact ? 29 : initialMiddle ? 25 : 22);
   camera.lookAt(initialX, initialCompact && initialWidth >= 600 ? -0.8 : 0, 0);
+  // On load the camera descends onto the map; the regular easing finishes the flight.
+  if (!motion.matches) camera.position.multiply(new THREE.Vector3(1, 2.1, 1.55));
   startLoop();
 }

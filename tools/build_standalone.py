@@ -15,7 +15,7 @@ ASSETS = ROOT / 'assets'
 STANDALONE = ROOT / 'portfolio-standalone.html'
 MOBILE_COPY = ROOT / 'portfolio-mobile.html'
 ARCHIVE = ROOT / 'portfolio.zip'
-ARCHIVE_FILES = ['index.html', 'style.css', 'script.js', 'experience.js', 'README.md', 'SOURCES.md']
+ARCHIVE_FILES = ['index.html', 'style.css', 'script.js', 'game.js', 'experience.js', 'README.md', 'SOURCES.md']
 
 
 def read(name):
@@ -52,11 +52,13 @@ def build_html():
     lookup = '({' + ','.join(f'{name}:"{uri}"' for name, uri in images.items()) + '})[project.image]'
     script = script.replace('`assets/${project.image}.png`', lookup)
 
-    head_assets = re.compile(r'<link rel="stylesheet" href="style\.css[^"]*">\s*<script src="script\.js[^"]*" defer></script>'
-                             r'<script src="assets/three\.js" defer></script><script src="experience\.js[^"]*" defer></script>')
-    if not head_assets.search(html):
+    stylesheet = re.compile(r'<link rel="stylesheet" href="style\.css[^"]*">')
+    script_tag = re.compile(r'<script src="([^"?]+)(?:\?[^"]*)?" defer></script>')
+    sources = script_tag.findall(html)
+    if not stylesheet.search(html) or not sources:
         raise ValueError('Не найдены подключения CSS и JavaScript в index.html')
-    html = head_assets.sub(lambda _: f'<style>\n{css}\n</style>', html)
+    html = stylesheet.sub(lambda _: f'<style>\n{css}\n</style>', html)
+    html = script_tag.sub('', html)
     html = html.replace('href="assets/favicon.svg"', f'href="{data_uri(ASSETS / "favicon.svg")}"')
     for name, uri in images.items():
         html = html.replace(f'src="assets/{name}.png"', f'src="{uri}"')
@@ -64,7 +66,7 @@ def build_html():
         raise ValueError('В index.html осталась ссылка на assets/')
 
     # Встроенные скрипты не поддерживают defer, поэтому они стоят в конце body.
-    scripts = '\n'.join(inline_script(code) for code in (script, read('assets/three.js'), read('experience.js')))
+    scripts = '\n'.join(inline_script(script if source == 'script.js' else read(source)) for source in sources)
     return html.replace('</body>', scripts + '</body>', 1)
 
 

@@ -1,6 +1,5 @@
 /* Mobile First: the default rules define the phone layout. */
 @font-face{font-family:Manrope;src:url("assets/manrope.ttf") format("truetype");font-weight:200 800;font-display:swap}
-@keyframes appear{from{opacity:.4;transform:translateY(15px)}to{opacity:1;transform:none}}
 @keyframes scene-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes chart-draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes exhibit-enter{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -157,7 +156,6 @@ dialog .dialog-note{font-size:12px;margin-top:25px}
 .dialog-image[hidden]{display:none}
 .dialog-close{position:absolute;right:15px;top:10px;background:none;font-size:30px;padding:5px}
 .skills{display:flex;gap:7px;flex-wrap:wrap;margin:25px 0}
-.reveal{animation:appear .7s both}
 .header nav.is-open{display:flex}
 .header nav a{display:inline-flex;align-items:center;min-height:44px}
 .contact>p br{display:none}
@@ -539,3 +537,126 @@ dialog .dialog-lead{font-size:18px}
 .footer{position:relative}
 .footer::before{content:"";position:absolute;top:-4px;left:0;width:7px;height:7px;border-radius:50%;background:#f6774f;box-shadow:0 0 0 5px #f6774f22}
 @media(max-width:760px){.sky-chart-work{top:220px;right:-155px;width:430px;opacity:.17}.sky-chart-about{right:-150px;bottom:-80px;width:370px;opacity:.09}.sky-chart-contact{right:-220px;top:185px;width:390px;opacity:.11}.contact::after{opacity:.18}}
+
+/* Smooth transitions: sections surface on arrival, dialogs glide, the hero title morphs into the driving HUD. */
+.route-progress{position:fixed;z-index:60;top:0;left:0;right:0;height:3px;pointer-events:none}
+.route-progress span{display:block;height:100%;background:linear-gradient(90deg,#f6774f,#ffb48f 55%,#9eb8ff);transform:scaleX(0);transform-origin:left center}
+html.is-comet .route-progress span{background:linear-gradient(90deg,#ff6b6b,#ffd166,#7be495,#6aa8ff,#c38bff)}
+.reveal-ready [data-reveal]{transition:opacity .8s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0s),translate .9s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0s),clip-path 2s cubic-bezier(.45,.05,.2,1) var(--reveal-delay,0s)}
+.reveal-ready [data-reveal]:not(.reveal):not(.sky-chart){opacity:0;translate:0 28px}
+.reveal-ready .sky-chart[data-reveal]:not(.reveal){clip-path:inset(0 100% 0 0)}
+@media print{.reveal-ready [data-reveal]{opacity:1!important;translate:none!important;clip-path:none!important}}
+dialog{opacity:0;translate:0 22px;scale:.97;transition:opacity .3s ease,translate .45s cubic-bezier(.22,1,.36,1),scale .45s cubic-bezier(.22,1,.36,1),overlay .45s allow-discrete,display .45s allow-discrete}
+dialog[open]{opacity:1;translate:0 0;scale:1}
+@starting-style{dialog[open]{opacity:0;translate:0 22px;scale:.97}}
+dialog::backdrop{opacity:0;transition:opacity .35s ease,overlay .45s allow-discrete,display .45s allow-discrete}
+dialog[open]::backdrop{opacity:1}
+@starting-style{dialog[open]::backdrop{opacity:0}}
+.experience-intro h1{view-transition-name:world-title}
+::view-transition-group(world-title){animation-duration:.55s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.38s}
+@keyframes exhibit-leave{to{opacity:0;transform:translateY(12px) scale(.98)}}
+@keyframes exhibit-swap{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.world-exhibit{transition:border-color .4s ease}
+.world-exhibit.is-leaving{animation:exhibit-leave .26s ease-in both;pointer-events:none}
+.world-exhibit.is-swapping h2,.world-exhibit.is-swapping .world-exhibit-facts,.world-exhibit.is-swapping .world-exhibit-result{animation:exhibit-swap .45s cubic-bezier(.22,1,.36,1) both}
+.world-exhibit.is-swapping .world-exhibit-facts{animation-delay:.05s}
+.world-exhibit.is-swapping .world-exhibit-result{animation-delay:.1s}
+
+/* Expedition: progress, driving HUD, radar, achievements and the journal. */
+.visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+@keyframes count-bump{40%{transform:scale(1.4);color:#ff9a71}}
+[data-game-count]{display:inline-block}
+[data-game-count].is-bumped{animation:count-bump .55s cubic-bezier(.22,1,.36,1)}
+.expedition-chip{--expedition-progress:100;display:inline-flex;align-items:center;gap:10px;margin-left:auto;min-height:44px;padding:4px;background:none;border-radius:999px;color:var(--ink);text-align:left}
+.expedition-chip+.menu-toggle{margin-left:6px}
+.expedition-ring{position:relative;display:grid;place-items:center;width:36px;height:36px;flex:none}
+.expedition-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.expedition-ring circle{fill:none;stroke:#1c26302b;stroke-width:3}
+.expedition-ring .expedition-ring-value{stroke:var(--orange);stroke-dasharray:100;stroke-dashoffset:var(--expedition-progress);transition:stroke-dashoffset .9s cubic-bezier(.22,1,.36,1),stroke .4s}
+.expedition-ring b{font-size:12px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.expedition-chip:hover .expedition-ring circle:first-child{stroke:#1c263050}
+.expedition-chip.is-complete .expedition-ring-value{stroke:#2c9a66}
+.expedition-chip-text{display:none}
+.game-toasts{position:fixed;z-index:120;top:14px;left:50%;transform:translateX(-50%);display:grid;gap:8px;width:min(360px,calc(100vw - 32px));margin:0;padding:0;border:0;background:none;overflow:visible;pointer-events:none}
+.game-toasts:empty{display:none}
+@keyframes toast-in{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes toast-out{to{opacity:0;transform:translateY(-10px) scale(.97)}}
+.game-toast{display:grid;grid-template-columns:38px minmax(0,1fr);gap:12px;align-items:start;padding:12px 14px;background:#101a34f5;color:#fff;border:1px solid #bfd0ff55;border-left:3px solid var(--orange);border-radius:6px;box-shadow:0 18px 50px #050b1f80;animation:toast-in .5s cubic-bezier(.22,1,.36,1) both}
+.game-toast.is-leaving{animation:toast-out .4s ease-in both}
+.game-toast-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#f6774f22;border:1px solid #f6774f;color:#ffb48f;font-size:17px}
+.game-toast small{display:block;font:10px/1.3 monospace;letter-spacing:.8px;text-transform:uppercase;color:#ffb48f}
+.game-toast strong{display:block;font-size:15px;margin-top:3px}
+.game-toast p{margin:3px 0 0;font-size:12px;line-height:1.45;color:#c9d5f6}
+.world-hud{display:none;flex-wrap:wrap;gap:6px;margin-top:12px;pointer-events:none}
+.experience.is-active:not(.is-showcase) .world-hud{display:flex;animation:scene-enter .45s .12s both}
+.world-hud>div{display:grid;gap:4px;min-width:72px;padding:7px 10px;background:#101a34c9;border:1px solid #bfd0ff40;border-radius:4px}
+.world-hud span{font:9px/1.2 monospace;letter-spacing:.8px;text-transform:uppercase;color:#aebde6}
+.world-hud strong{font-size:14px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.world-hud-speed{min-width:96px!important}
+.world-hud-speed i{display:block;height:3px;background:#ffffff1f;border-radius:2px;overflow:hidden}
+.world-hud-speed em{display:block;height:100%;background:#9eb8ff;transform:scaleX(0);transform-origin:left center;transition:transform .15s linear,background .3s}
+.world-hud-speed i.is-boosting em{background:#f6774f}
+.world-radar{display:none;position:absolute;right:0;top:118px;width:132px;height:132px;border-radius:50%;pointer-events:none}
+.experience-map-list button.is-discovered::after{content:"✓";float:right;margin-left:10px;color:#2c9a66}
+.project.is-discovered .station-index::after,.project.is-discovered .small-station-index::after{content:"✓";margin-left:6px;font-weight:700}
+.expedition-complete{display:flex;align-items:flex-start;gap:16px;max-width:620px;margin-top:34px;padding:18px 20px;border:1px solid #f6774f88;border-radius:6px;background:#fff8f2;animation:scene-enter .6s both}
+.expedition-complete[hidden]{display:none}
+.expedition-complete-mark{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:50%;background:var(--orange);color:#fff;font-size:20px}
+.expedition-complete strong{font-size:16px}
+.expedition-complete p{margin:4px 0 0;font-size:14px;line-height:1.6;color:#4e5a65}
+dialog.journal{width:min(840px,calc(100% - 32px));background:#101a34;color:#eef2ff;box-shadow:0 30px 100px #02061499}
+.journal .dialog-close{color:#fff}
+.journal .eyebrow{color:#ffb48f}
+.journal h2{color:#fff}
+.journal .journal-lead{max-width:600px;font-size:14px;line-height:1.7;color:#c1cee8}
+.journal h3{margin:30px 0 12px;font-size:17px;color:#fff}
+.journal-stats{display:grid;gap:10px;margin-top:22px}
+.journal-stats>div{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:9px 12px;padding:13px 14px;border:1px solid #7790ba55;border-radius:5px;background:#ffffff08}
+.journal-stats span{font:10px/1.3 monospace;letter-spacing:.8px;text-transform:uppercase;color:#a9b9df}
+.journal-stats strong{font-size:20px;font-variant-numeric:tabular-nums}
+.journal-stats i{grid-column:1/-1;height:4px;background:#ffffff18;border-radius:2px;overflow:hidden}
+.journal-stats em{display:block;height:100%;background:linear-gradient(90deg,#f6774f,#ffb48f);transform:scaleX(0);transform-origin:left center;transition:transform .9s cubic-bezier(.22,1,.36,1)}
+.journal-stations{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.journal-stations li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;column-gap:12px;align-items:center;padding:10px 12px;border:1px solid #7790ba40;border-radius:4px}
+.journal-stations li::before{content:"";grid-row:1/3;width:10px;height:10px;border:2px solid var(--station-color);border-radius:50%}
+.journal-stations li.is-done::before{background:var(--station-color)}
+.journal-stations span{font-size:14px;font-weight:750}
+.journal-stations small{grid-column:2;font:10px/1.5 monospace;color:#a9b9df}
+.journal-stations li.is-done small{color:var(--station-color)}
+.journal-stations button{grid-column:3;grid-row:1/3;min-height:40px;padding:8px 12px;border:1px solid #bfd0ff66;border-radius:3px;background:none;color:#fff;font-size:11px;font-weight:800;transition:background .2s,border-color .2s,color .2s}
+.journal-stations button:hover{background:#f6774f;border-color:#f6774f;color:#101a34}
+.journal-achievements{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.journal-achievements li{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:12px;row-gap:3px;padding:12px;border:1px solid #7790ba40;border-radius:5px}
+.journal-achievements li.is-done{border-color:#f6774f88;background:#f6774f12}
+.journal-achievements li>span{grid-row:1/4;display:grid;place-items:center;width:40px;height:40px;border:1px dashed #8fa0c8;border-radius:50%;color:#8fa0c8;font-size:17px}
+.journal-achievements li.is-done>span{border-style:solid;border-color:#f6774f;background:#f6774f1f;color:#ffb48f}
+.journal-achievements strong{font-size:14px;color:#c1cee8}
+.journal-achievements li.is-done strong{color:#fff}
+.journal-achievements small{font-size:12px;line-height:1.45;color:#a9b9df}
+.journal-achievements em{font:normal 10px/1.4 monospace;letter-spacing:.6px;text-transform:uppercase;color:#8fa0c8}
+.journal-achievements li.is-done em{color:#9be7c3}
+.journal-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:26px;padding-top:18px;border-top:1px solid #7790ba40}
+.journal-footer p{margin:0;font:11px/1.5 monospace;color:#a9b9df}
+.journal-reset{min-height:40px;padding:9px 12px;border:1px solid #7790ba77;border-radius:3px;background:none;color:#c9d5f6;font-size:11px;font-weight:800}
+.journal-reset:hover,.journal-reset.is-confirming{border-color:#ff9877;color:#ff9877}
+@media(max-width:389px){.logo-name small{display:none}}
+@media(min-width:761px){
+  .header nav{order:1}
+  .expedition-chip{order:2;margin-left:0;padding:4px 14px 4px 4px;border:1px solid var(--line)}
+  .expedition-chip:hover{border-color:#1c263050}
+  .header-cta{order:3}
+  .game-toasts{top:16px;right:24px;left:auto;transform:none}
+  .experience.is-active:not(.is-showcase) .world-radar{display:block;animation:scene-enter .5s .18s both}
+  .world-hud{margin-top:18px;gap:8px}
+  .world-hud>div{min-width:86px;padding:9px 12px}
+  .world-hud strong{font-size:16px}
+  .world-hud-speed{min-width:120px!important}
+  .journal-stats{grid-template-columns:repeat(3,1fr)}
+  .journal-stations,.journal-achievements{grid-template-columns:1fr 1fr}
+}
+@media(min-width:1101px){.expedition-chip-text{display:flex;flex-direction:column;gap:2px;font-size:12px;font-weight:800;line-height:1.2}.expedition-chip-text small{font:10px/1.4 monospace;color:var(--muted);font-weight:400}}
+@media(min-width:1200px){.world-radar{top:130px;width:148px;height:148px}}
+@media(min-width:761px) and (max-width:1100px){.header{gap:20px}.header nav{gap:22px}.header nav a,.logo-name small{white-space:nowrap}.header-cta{padding-inline:14px}}
+@keyframes toast-rise{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@media(min-width:761px) and (pointer:fine){.game-toasts{top:auto;bottom:24px}.game-toast{animation-name:toast-rise}.game-toast.is-leaving{animation-name:toast-out}}
