@@ -283,6 +283,59 @@ if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-mot
   document.documentElement.classList.add('reveal-ready');
 }
 
+// Quiet background life for the static sections: twinkling stars and rare
+// comets in the night sky, a radar sweep behind the contact block. Positions
+// come from a fixed seed so the sky looks the same on every visit.
+(() => {
+  const sections = [...document.querySelectorAll('.work, .about, .contact, .footer')];
+  let seed = 4127;
+  const random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  document.querySelectorAll('.work, .about, .contact').forEach((section, sectionIndex) => {
+    const layer = document.createElement('div');
+    layer.className = 'ambient';
+    layer.setAttribute('aria-hidden', 'true');
+    const area = section.offsetWidth * section.offsetHeight;
+    const stars = Math.round(Math.min(Math.max(area / 24000, 12), 38));
+    for (let i = 0; i < stars; i++) {
+      const star = document.createElement('i');
+      star.className = 'ambient-star';
+      star.style.cssText = `left:${(random() * 100).toFixed(2)}%;top:${(random() * 100).toFixed(2)}%;--size:${(1 + random() * 1.8).toFixed(2)}px;--duration:${(3 + random() * 5).toFixed(2)}s;--delay:${(-random() * 8).toFixed(2)}s`;
+      layer.append(star);
+    }
+    for (let i = 0; i < (section.matches('.contact') ? 1 : 2); i++) {
+      const comet = document.createElement('i');
+      comet.className = 'ambient-comet';
+      comet.style.cssText = `left:${(62 + random() * 34).toFixed(2)}%;top:${(4 + random() * 42).toFixed(2)}%;--delay:${(sectionIndex * 5 + i * 9 + random() * 4).toFixed(2)}s;--cycle:${(15 + random() * 8).toFixed(2)}s`;
+      layer.append(comet);
+    }
+    const card = section.querySelector('.about-grid');
+    if (card) {
+      // The profile card is opaque, so its slow aurora lives inside the card.
+      const glow = document.createElement('div');
+      glow.className = 'ambient ambient-card';
+      glow.setAttribute('aria-hidden', 'true');
+      const aurora = document.createElement('i');
+      aurora.className = 'ambient-aurora';
+      glow.append(aurora);
+      card.prepend(glow);
+    }
+    if (section.matches('.contact')) {
+      const radar = document.createElement('i');
+      radar.className = 'ambient-radar';
+      for (let i = 0; i < 3; i++) radar.append(document.createElement('b'));
+      layer.append(radar);
+    }
+    section.prepend(layer);
+  });
+  // Motion stops while a section is off screen, so the page costs nothing to scroll past.
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => entry.target.classList.toggle('is-idle', !entry.isIntersecting));
+    }, { rootMargin: '80px 0px' });
+    sections.forEach(section => observer.observe(section));
+  }
+})();
+
 // A thin route line in the page edge shows how far the visitor has travelled.
 (() => {
   const line = document.querySelector('.route-progress span');

@@ -675,3 +675,48 @@ dialog.journal{width:min(840px,calc(100% - 32px));background:#101a34;color:#eef2
 .journal-cta strong{font-size:15px;color:#fff}
 .journal-cta .button{min-height:44px;padding:12px 18px}
 .world-hud strong span,.journal-stats strong span{font:inherit;letter-spacing:inherit;text-transform:none;color:inherit}
+
+/* Background life for the static landing: stars, comets, route pulses, aurora and the contact radar. */
+@keyframes ambient-twinkle{0%,100%{opacity:.18;transform:scale(.7)}50%{opacity:.95;transform:scale(1.15)}}
+@keyframes ambient-comet{0%{opacity:0;transform:translate3d(0,0,0) rotate(152deg)}1.5%{opacity:1}7%{opacity:0;transform:translate3d(-460px,245px,0) rotate(152deg)}100%{opacity:0;transform:translate3d(-460px,245px,0) rotate(152deg)}}
+@keyframes ambient-drift{from{translate:0 0}to{translate:-18px 12px}}
+@keyframes ambient-aurora{0%{transform:translate3d(-8%,0,0) scale(1)}50%{transform:translate3d(6%,-6%,0) scale(1.12)}100%{transform:translate3d(-2%,5%,0) scale(.96)}}
+@keyframes ambient-route{0%{left:0;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:100%;opacity:0}}
+@keyframes ambient-sweep{to{transform:rotate(1turn)}}
+@keyframes ambient-ping{0%{opacity:.6;transform:scale(.04)}80%{opacity:0}100%{opacity:0;transform:scale(1)}}
+@keyframes ambient-spin{to{transform:rotate(1turn)}}
+@keyframes ambient-beacon{0%,100%{box-shadow:0 0 0 5px #f6774f22}50%{box-shadow:0 0 0 11px #f6774f00,0 0 0 5px #f6774f33}}
+.ambient{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict}
+.ambient-star{position:absolute;width:var(--size);height:var(--size);border-radius:50%;background:#d6e3ff;box-shadow:0 0 6px #b9cffc;opacity:.4;animation:ambient-twinkle var(--duration) ease-in-out var(--delay) infinite}
+.contact .ambient-star{background:#5d74a0;box-shadow:none}
+.ambient-comet{position:absolute;width:130px;height:1.5px;border-radius:2px;background:linear-gradient(90deg,transparent,#ffd6bf 70%,#fff);opacity:0;transform-origin:100% 50%;animation:ambient-comet var(--cycle) cubic-bezier(.3,.1,.4,1) var(--delay) infinite}
+.contact .ambient-comet{background:linear-gradient(90deg,transparent,#f6774f 75%,#e04f28)}
+.ambient-aurora{position:absolute;left:18%;top:-10%;width:78%;height:90%;border-radius:50%;background:radial-gradient(closest-side,#3f5fa04d,#2c9a6614 55%,transparent);animation:ambient-aurora 26s ease-in-out infinite alternate}
+.ambient-radar{position:absolute;right:-80px;top:75px;width:min(480px,75vw);aspect-ratio:1;border-radius:50%;opacity:.55}
+.ambient-radar::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 78%,#f6774f10 90%,#f6774f38 100%);animation:ambient-sweep 14s linear infinite}
+.ambient-radar b{position:absolute;inset:0;border:1px solid #f6774f;border-radius:50%;opacity:0;animation:ambient-ping 7.5s cubic-bezier(.2,.6,.35,1) infinite}
+.ambient-radar b:nth-child(2){animation-delay:2.5s}
+.ambient-radar b:nth-child(3){animation-delay:5s}
+.sky-chart{animation:ambient-drift 24s ease-in-out infinite alternate}
+.sky-chart-about{animation-duration:31s;animation-direction:alternate-reverse}
+.archive-route-track,.about-route-line{position:relative;overflow:visible}
+.archive-route-track::after,.about-route-line::after{content:"";position:absolute;top:-2px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#ffd6bf;box-shadow:0 0 8px #f6774f,0 0 2px #fff;animation:ambient-route 3.6s ease-in-out infinite}
+.about-route-line::after{animation-duration:5.2s;animation-delay:.8s}
+.identity-avatar::after{animation:ambient-spin 36s linear infinite}
+.footer::before{animation:ambient-beacon 3.2s ease-in-out infinite}
+.archive-route-origin,.about-route-node{animation:ambient-beacon 3.2s ease-in-out infinite}
+.about-route-node{animation-delay:1.6s}
+.is-idle .ambient *,.is-idle .ambient-radar::before,.is-idle .sky-chart,.is-idle .archive-route-track::after,.is-idle .about-route-line::after,.is-idle .identity-avatar::after,.is-idle .archive-route-origin,.is-idle .about-route-node,.footer.is-idle::before{animation-play-state:paused}
+@media(max-width:760px){.ambient-comet{width:90px}.ambient-radar{opacity:.4}}
+.about-grid{isolation:isolate}
+.ambient-card{border-radius:inherit}
+@keyframes ambient-twinkle-soft{0%,100%{opacity:.08;transform:scale(.7)}50%{opacity:.45;transform:scale(1)}}
+.contact .ambient-star{background:#7185ad;animation-name:ambient-twinkle-soft}
+/* Small-screen fixes: hero copy clears the map button, disclosure toggle is a full tap target. */
+@media(max-width:760px){.experience-layout{padding-top:74px}}
+@media(max-width:389px){.experience-intro{padding-top:10px}}
+@media(min-width:360px) and (max-width:390px){.archive-route{font-size:10px}}
+.footer-disclosure summary{padding-block:12px}
+.footer-disclosure details{margin-top:3px}
+.dialog-close{display:grid;place-items:center;min-width:44px;min-height:44px;right:8px;top:6px;line-height:1}
+.ambient-radar{-webkit-mask-image:linear-gradient(90deg,#000 38%,transparent 66%);mask-image:linear-gradient(90deg,#000 38%,transparent 66%)}
